@@ -2,39 +2,44 @@
 
 # ⚡ PowerDeck Pro
 
-### Free & Open-Source Studio Desktop Client for Real-Time Voice Rooms
+### 100% Totally Free & Open-Source Studio Desktop Client
+
+> **📢 Notice: PowerDeck Pro is NOT affiliated with Clubhouse. It is an independent, totally free and open-source project.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-2.0.1-green.svg)](https://github.com/worldofmathann/PowerDeck-Pro/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://github.com/worldofmathann/PowerDeck-Pro/releases)
-[![Status](https://img.shields.io/badge/status-100%25%20Free%20%26%20Unlocked-brightgreen.svg)](#)
+[![Not Affiliated with Clubhouse](https://img.shields.io/badge/Clubhouse-Not%20Affiliated-orange.svg)](#legal-disclaimer)
+[![Totally Free](https://img.shields.io/badge/Price-Totally%20Free%20%26%20Open%20Source-brightgreen.svg)](#)
 
 <p align="center">
   <b>High-fidelity 48kHz audio engine, studio equalizer, reverb mixer, and resilient 24/7 VPS streaming.</b><br>
-  No paywalls. No license keys. Completely free and open-source forever.
+  <b>Totally free forever. Zero paywalls. Zero license keys. Zero subscriptions.</b>
 </p>
 
 </div>
 
 ---
 
-### ⚠️ Legal Disclaimer
+### ⚠️ Legal Disclaimer: Not Affiliated with Clubhouse
 
-> **IMPORTANT**: **PowerDeck Pro** is an independent, community-driven, third-party open-source project.  
-> It is **NOT** affiliated with, associated with, authorized by, endorsed by, sponsored by, or in any way officially connected with **Clubhouse** ([Alpha Exploration Co., Inc.](https://www.clubhouse.com)) or any of its subsidiaries or affiliates.  
+> **IMPORTANT**: **PowerDeck Pro is NOT affiliated with, associated with, authorized by, endorsed by, sponsored by, or in any way officially connected with Clubhouse ([Alpha Exploration Co., Inc.](https://www.clubhouse.com)) or any of its subsidiaries or affiliates.**  
 > 
-> The official Clubhouse website can be found at [https://www.clubhouse.com](https://www.clubhouse.com). The name "Clubhouse", as well as related names, marks, logos, and emblems, are registered trademarks of their respective owners.
+> - PowerDeck Pro is an independent, community-driven, 100% free open-source desktop client.
+> - The official Clubhouse website is located at [https://www.clubhouse.com](https://www.clubhouse.com).
+> - The name "Clubhouse", as well as related names, marks, logos, and emblems, are registered trademarks of their respective owners.
 
 ---
 
-## 🌟 Why PowerDeck Pro?
+## 🌟 Totally Free & Open Source
 
-PowerDeck Pro was built for creators, musicians, room moderators, and power users who need studio-quality audio control, ultra-stable connections, and complete freedom without artificial limitations.
+PowerDeck Pro was built for creators, musicians, room moderators, and power users who need studio-quality audio control, ultra-stable connections, and complete freedom without artificial paywalls.
 
-Every feature in PowerDeck Pro is **100% unlocked and free**:
+Every feature in PowerDeck Pro is **100% unlocked and totally free**:
 - 🚫 **No License System**: No activation keys, no paid tiers, no expiration dates.
 - 🔓 **All Features Unlocked**: Full access to all audio processing DSPs, equalizer bands, custom media uploads, and channel controls.
 - 🌐 **100% Open Source**: Fully transparent codebase released under the permissive [MIT License](LICENSE).
+- 💸 **Totally Free**: No subscriptions, no in-app purchases, completely free for the community.
 
 ---
 

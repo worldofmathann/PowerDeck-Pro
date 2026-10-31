@@ -21,10 +21,6 @@ contextBridge.exposeInMainWorld('powerdeckAPI', {
   logout: () => ipcRenderer.invoke('auth:logout'),
 
   // Auth operations
-  startPhoneAuth: (phoneNumber, deviceId) =>
-    ipcRenderer.invoke('auth:start-phone', { phoneNumber, deviceId }),
-  verifyOtp: (phoneNumber, verificationCode, deviceId) =>
-    ipcRenderer.invoke('auth:verify-otp', { phoneNumber, verificationCode, deviceId }),
   passwordAuth: (phoneNumber, password, deviceId) =>
     ipcRenderer.invoke('auth:password', { phoneNumber, password, deviceId }),
   tokenAuth: (token, deviceId) =>

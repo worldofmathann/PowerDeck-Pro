@@ -1,0 +1,3224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PowerDeck Pro - Advanced Auth & Agora Engine</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    function openCreateRoomModal(prefill) {
+      if (typeof window.triggerOpenCreateRoomModal === 'function') {
+        return window.triggerOpenCreateRoomModal(prefill);
+      }
+      const modal = document.getElementById('create-room-modal');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.style.zIndex = '3600';
+      }
+    }
+    function openAudioSettingsModal() {
+      if (typeof window.triggerOpenAudioSettingsModal === 'function') {
+        return window.triggerOpenAudioSettingsModal();
+      }
+      const modal = document.getElementById('modal-audio-settings');
+      if (modal) {
+        modal.style.display = 'flex';
+        modal.style.zIndex = '5000';
+      }
+    }
+    function closeAudioSettingsModal() {
+      const modal = document.getElementById('modal-audio-settings');
+      if (modal) modal.style.display = 'none';
+    }
+  </script>
+</head>
+<body data-theme="dark">
+
+  <!-- Startup Screen: Rounded ⚡ Powerdeck Pro Loading Animation -->
+  <div id="startup-splash-screen" class="startup-splash-screen">
+    <div class="startup-splash-card">
+      <div class="startup-logo-wrapper">
+        <div class="startup-loading-ring"></div>
+        <div class="startup-loading-ring-outer"></div>
+        <div class="startup-logo-rounded">
+          <span class="startup-logo-icon">⚡</span>
+        </div>
+      </div>
+      <div class="startup-loader-bar-wrap">
+        <div class="startup-loader-bar" id="startup-loader-bar"></div>
+      </div>
+      <div class="startup-status" id="startup-status-text">Starting Powerdeck Pro...</div>
+    </div>
+  </div>
+
+  <!-- Interactive 60 FPS Particle Constellation Canvas -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- Titlebar Header -->
+  <header class="app-header">
+    <div class="drag-region">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <div class="brand-text">
+          <div class="brand-title">POWERDECK <span class="badge-pro">PRO</span></div>
+          <div class="brand-sub">Powerdeckpro made for clubhouse</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10 Visual Interfaces Quick Switcher -->
+    <div class="interface-switcher-bar" id="interface-switcher-bar">
+      <button type="button" class="interface-switch-pill" id="btn-interface-switch" title="Switch Interface Visual Style (10 Unique Interfaces)">
+        <span class="interface-pill-icon" id="interface-pill-icon">⚡</span>
+        <span class="interface-pill-label">Theme:</span>
+        <span class="interface-pill-name" id="interface-pill-name">Cyberpunk Neon</span>
+        <span class="interface-pill-arrow">▾</span>
+      </button>
+      <button type="button" class="interface-cycle-btn" id="btn-interface-cycle" title="Quick Cycle Next Interface (Alt + I)">⇄</button>
+    </div>
+
+    <!-- Active Hardware Device ID Chip (Hidden per request) -->
+    <div class="device-chip" id="device-chip" style="display: none !important;" title="Active Session Device ID">
+      <span class="chip-label">DEVICE ID:</span>
+      <span class="chip-val" id="header-device-id">LOADING...</span>
+      <span class="chip-lock" id="header-lock-badge" title="Device ID locked for session pairing">🔒</span>
+    </div>
+
+    <div class="window-controls">
+      <!-- Single Color Palette Trigger Button with Floating Popover Box -->
+      <div class="color-picker-dropdown-wrapper" id="color-picker-dropdown-wrapper">
+        <button type="button" class="color-picker-btn" id="btn-color-picker-toggle" title="Select Theme Color Accent (Click to open color studio)">
+          <span class="color-picker-dot" id="active-color-dot"></span>
+          <span class="color-picker-label" id="active-color-name">Electric Purple</span>
+          <span class="color-picker-arrow">▾</span>
+        </button>
+
+        <!-- Floating Popover Box for Selecting Colors -->
+        <div class="color-palette-popover" id="color-palette-popover" style="display: none;">
+          <div class="popover-header">
+            <div class="popover-title-row">
+              <span class="popover-badge">🎨 22 COLOR PALETTES</span>
+              <button type="button" class="popover-close-btn" id="btn-close-palette-popover" title="Close">✕</button>
+            </div>
+            <div class="popover-sub">Choose an accent color for buttons, glowing borders, and channel highlights:</div>
+          </div>
+
+          <div class="popover-color-grid" id="popover-color-grid">
+            <!-- Dynamically populated with all 22 colors -->
+          </div>
+
+          <div class="popover-footer">
+            <span class="popover-hint">💡 Instant live preview on click</span>
+            <button type="button" class="btn btn-secondary btn-xs" id="btn-done-palette-popover" style="font-size: 11px; padding: 2px 8px;">Done</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="control-btn theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark/Light Theme">
+        <span id="theme-icon">☀️</span> <span id="theme-text">Light Mode</span>
+      </button>
+
+      <!-- Top Bar Check for Updates Button -->
+      <button type="button" class="header-nav-btn btn-update-check" id="btn-top-check-updates" title="Check for PowerDeck Pro Updates">
+        <span class="update-icon" id="update-icon-spin">🔄</span>
+        <span id="update-btn-text">Updates</span>
+        <span class="update-badge-dot" id="update-badge-dot" style="display: none;"></span>
+      </button>
+
+      <!-- Top Bar Clear Cache Button -->
+      <button type="button" class="header-nav-btn btn-clear-cache" id="btn-top-clear-cache" title="Clear Application Cache & Preferences from AppData">
+        <span class="clear-cache-icon" id="clear-cache-icon">🧹</span>
+        <span id="clear-cache-btn-text">Clear Cache</span>
+      </button>
+
+      <button class="control-btn win-btn" id="btn-minimize" title="Minimize">—</button>
+      <button class="control-btn win-btn" id="btn-maximize" title="Maximize">▢</button>
+      <button class="control-btn win-btn close-btn" id="btn-close" title="Close">✕</button>
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="app-main">
+
+    <!-- ========================================== -->
+    <!-- 1. LOGIN VIEW -->
+    <!-- ========================================== -->
+    <section class="view" id="view-login">
+      <div class="login-container">
+
+        <!-- Welcome Banner -->
+        <div class="login-header">
+          <div class="logo-circle">⚡</div>
+          <h1 class="login-title">PowerDeck Pro Authentication</h1>
+          <p class="login-subtitle">
+            Clubhouse Music playing bot with Full Features<br>
+            <span class="login-disclaimer">Note : its not offiliated with clubhouse its Made with Love ❤️</span>
+          </p>
+        </div>
+
+        <!-- Existing Profile Quick Alert Banner (if found) -->
+        <div class="existing-profile-banner" id="existing-profile-banner" style="display: none;">
+          <div class="banner-icon">💾</div>
+          <div class="banner-content">
+            <div class="banner-title">Saved Profile Detected</div>
+            <div class="banner-desc" id="existing-profile-desc">Saved session detected in PowerDeck Pro</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="btn-resume-session">⚡ Quick Resume</button>
+        </div>
+
+        <!-- The 3 Mode Buttons -->
+        <div class="auth-mode-selector">
+          <button class="mode-btn active" id="mode-btn-phone" data-mode="phone">
+            <span class="mode-icon">📱</span>
+            <span class="mode-text">1. Login with Phone Number</span>
+          </button>
+          <button class="mode-btn" id="mode-btn-password" data-mode="password">
+            <span class="mode-icon">🔐</span>
+            <span class="mode-text">2. Password Login</span>
+          </button>
+          <button class="mode-btn" id="mode-btn-token" data-mode="token">
+            <span class="mode-icon">🔑</span>
+            <span class="mode-text">3. Token Direct Login</span>
+          </button>
+        </div>
+
+        <!-- Panels Container -->
+        <div class="card auth-card">
+
+          <!-- PANEL 1: PHONE LOGIN (OTP) -->
+          <div class="auth-panel active" id="panel-phone">
+            <div class="panel-header">
+              <h2 class="panel-title">Phone Number Verification</h2>
+              <p class="panel-desc">
+                Enter your phone number with country code to receive your SMS verification code.
+              </p>
+            </div>
+
+            <!-- Session Device ID Row (Hidden per request) -->
+            <div class="device-pairing-row" style="display: none !important;">
+              <div class="pairing-badge">
+                <span class="p-label">Session Device ID:</span>
+                <span class="p-id" id="phone-panel-device-id">--------</span>
+                <span class="p-tag" id="phone-panel-lock-status">🔒 Locked for Auth Pair</span>
+              </div>
+              <button class="btn btn-secondary btn-xs" id="btn-regen-device-id">🎲 New ID</button>
+            </div>
+
+            <div class="form-group">
+              <label for="input-phone-number">Phone Number (with country code):</label>
+              <div class="input-wrapper">
+                <span class="input-icon">📞</span>
+                <input type="text" id="input-phone-number" placeholder="e.g. +14155552671 or +919876543210" autocomplete="tel">
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="btn-send-otp">
+              <span class="btn-spinner" style="display: none;"></span>
+              <span class="btn-label">Send Otp</span>
+            </button>
+
+            <div class="otp-verification-section" id="otp-section" style="opacity: 0.5; pointer-events: none;">
+              <div class="form-group">
+                <label for="input-otp-code">Enter SMS Verification OTP Code:</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">💬</span>
+                  <input type="text" id="input-otp-code" placeholder="Enter 4 or 6 digit OTP" maxlength="8" autocomplete="one-time-code">
+                </div>
+              </div>
+
+              <button class="btn btn-highlight btn-block" id="btn-verify-otp">
+                <span class="btn-spinner" style="display: none;"></span>
+                <span class="btn-label">✓ 2. Verify OTP & Complete Login</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- PANEL 2: PASSWORD LOGIN -->
+          <div class="auth-panel" id="panel-password">
+            <div class="panel-header">
+              <h2 class="panel-title">Clubhouse Password Authentication</h2>
+              <p class="panel-desc">
+                Log in directly using your registered phone number and account password.
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label for="input-pass-phone">Phone Number:</label>
+              <div class="input-wrapper">
+                <span class="input-icon">📞</span>
+                <input type="text" id="input-pass-phone" placeholder="+1234567890">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-pass-password">Account Password:</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="input-pass-password" placeholder="Enter your password">
+                <button type="button" class="btn-icon-addon" id="btn-toggle-pass-visibility" title="Show/Hide Password">👁️</button>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="btn-password-login">
+              <span class="btn-spinner" style="display: none;"></span>
+              <span class="btn-label">🔐 Log In via Password</span>
+            </button>
+          </div>
+
+          <!-- PANEL 3: TOKEN LOGIN -->
+          <div class="auth-panel" id="panel-token">
+            <div class="panel-header">
+              <h2 class="panel-title">Direct Token Authentication</h2>
+              <p class="panel-desc">
+                Already have a Clubhouse auth token? Paste it below to immediately verify, query account details, and jump to the Home page.
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label for="input-token-direct">Clubhouse Auth Token:</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🔑</span>
+                <input type="password" id="input-token-direct" placeholder="Paste Clubhouse auth token here">
+                <button type="button" class="btn-icon-addon" id="btn-toggle-token-visibility" title="Show/Hide Token">👁️</button>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-block" id="btn-token-login">
+              <span class="btn-spinner" style="display: none;"></span>
+              <span class="btn-label">🚀 Log In with Token</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Alert Notification Box -->
+        <div class="alert-box" id="alert-box" style="display: none;">
+          <span class="alert-icon" id="alert-icon">ℹ️</span>
+          <span class="alert-message" id="alert-message">Status message</span>
+        </div>
+
+        <!-- Compact Token Preview Bar (Slim & Minimal - Hidden per request) -->
+        <div class="token-preview-bar" id="token-preview-card" style="display: none !important;">
+          <div class="token-bar-left">
+            <span class="token-icon">🔑</span>
+            <span class="token-label">Token:</span>
+            <input type="password" id="token-preview-input" readonly placeholder="Waiting for token..." class="token-compact-input">
+          </div>
+          <div class="token-bar-right">
+            <span class="token-badge" id="token-status-badge">Standby</span>
+            <button class="btn btn-secondary btn-xs" id="btn-copy-preview-token" disabled title="Copy Token">📋 Copy</button>
+            <button class="btn btn-secondary btn-xs" id="btn-mask-preview-token" title="Show/Hide">👁️</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 2. HOME VIEW (STEP 1 COMPLETED) -->
+    <!-- ========================================== -->
+    <section class="view" id="view-home">
+      <div class="home-container">
+
+        <!-- Top Navigation / User Welcome Banner -->
+        <div class="home-top-bar">
+          <div class="user-greeting" id="home-profile-summary" title="Click to open Your Profile" style="cursor: pointer;">
+            <div class="avatar-container">
+              <img src="" alt="Avatar" class="user-avatar" id="home-avatar" style="display: none;">
+              <div class="avatar-fallback" id="home-avatar-fallback">👤</div>
+              <span class="online-status-dot" title="Active Agora Session"></span>
+              <div class="avatar-hover-edit-badge" title="Manage Profile">✏️</div>
+            </div>
+            <div class="user-info-text">
+              <div class="user-name-row">
+                <h1 class="user-display-name" id="home-user-name">Welcome User</h1>
+                <span class="badge-yellow-plus" id="home-paid-plus" title="Clubhouse Plus Member" style="display: none;">+</span>
+                <span class="badge badge-success">✓ Verified Session</span>
+              </div>
+              <div class="user-meta-row">
+                <span class="user-handle" id="home-user-handle">@username</span>
+                <span class="meta-dot">•</span>
+                <span class="user-id-tag">ID: <span id="home-user-id">000000</span></span>
+                <span class="meta-dot">•</span>
+                <span class="user-following-tag clickable-stat" id="home-user-following-tag" title="Click to view following">Following: <span id="home-user-following">0</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="home-actions">
+            <button class="btn-notification-bell" id="btn-notifications" title="Notifications & Activities">
+              <span class="bell-icon">🔔</span>
+              <span class="notification-badge" id="notification-badge" style="display: none;"></span>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-audio-settings" onclick="openAudioSettingsModal()" title="Audio devices, volumes, spatial sound & studio equalizer suite">🔊 Audio & Equalizer</button>
+            <button class="btn btn-secondary btn-sm" id="btn-open-folder" title="Open storage folder">📁 Storage</button>
+            <button class="btn btn-secondary btn-sm" id="btn-home-help" title="Help & Documentation">❓ Help</button>
+            <button class="btn btn-secondary btn-sm" id="btn-home-about" title="About Powerdeck Pro">ℹ️ About Us</button>
+            <button class="btn btn-danger btn-sm" id="btn-logout" title="Sign out to login page">🚪 Sign Out</button>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- STEP 2 & 3: SPLIT HALLWAY: FEED ON LEFT, FULL-HEIGHT CHANNEL ON RIGHT -->
+        <!-- ========================================== -->
+        <div class="hallway-split-container no-active-room" id="hallway-split-container">
+
+          <!-- LEFT COLUMN: Other Channels Feed & Direct Search -->
+          <aside class="hallway-feed-sidebar" id="hallway-feed-sidebar">
+
+            <!-- Search & Direct Channel Link Join Bar -->
+            <div class="card hallway-controls-card">
+              <div class="search-bar-row">
+                <div class="search-input-wrapper">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" id="hallway-search-input" placeholder="Search houses, users, or paste link (Press Enter ↵)...">
+                  <button class="btn-clear-search" id="btn-clear-search" style="display: none;" title="Clear Search">✕</button>
+                </div>
+              </div>
+
+              <!-- Start Room Button (Bottom of Search Bar on Main Page) -->
+              <div class="start-room-bar-row" id="start-room-bar-row">
+                <button type="button" class="btn btn-highlight btn-start-room-main" id="btn-quick-create-room" onclick="openCreateRoomModal()" title="Start a new Clubhouse audio room">
+                  <span class="start-room-icon">🎙️</span>
+                  <span class="start-room-text">Start a Room</span>
+                </button>
+              </div>
+
+              <!-- Room Invite Preview Box (Suppressed for hallway search - preview is only for activity ping channels) -->
+              <div class="room-invite-preview-box" id="room-invite-preview-box" style="display: none !important;">
+                <div class="invite-box-top-bar">
+                  <div class="invite-box-tag">
+                    <span class="invite-pulse-dot"></span>
+                    <span class="invite-tag-label">Room Invite Detected</span>
+                  </div>
+                  <button class="btn-close-invite-box" id="btn-close-invite-box" title="Dismiss">✕</button>
+                </div>
+                <div class="invite-box-body">
+                  <div class="invite-inviter-card">
+                    <div class="invite-inviter-avatar-wrap">
+                      <img src="" id="invite-inviter-photo" class="invite-inviter-photo" alt="Inviter" onerror="this.style.display='none'; document.getElementById('invite-inviter-fallback').style.display='flex';">
+                      <div class="invite-inviter-fallback" id="invite-inviter-fallback">👤</div>
+                    </div>
+                    <div class="invite-inviter-meta">
+                      <span class="invite-inviter-caption">Room invited by</span>
+                      <strong class="invite-inviter-name" id="invite-inviter-name">Inviter Name</strong>
+                    </div>
+                  </div>
+                  <div class="invite-stage-summary">
+                    <div class="invite-topic-row">
+                      <span class="invite-topic-icon">🎙️</span>
+                      <span class="invite-topic-text" id="invite-room-topic">Channel Topic</span>
+                    </div>
+                    <div class="invite-club-row" id="invite-club-row" style="display: none;">
+                      <img src="" id="invite-club-photo" class="invite-club-photo" alt="House" onerror="this.style.display='none';">
+                      <span class="invite-club-name" id="invite-club-name">House Name</span>
+                    </div>
+                    <div class="invite-badges-row">
+                      <span class="invite-state-pill" id="invite-state-pill">🟢 Live Channel</span>
+                      <span class="invite-channel-pill" id="invite-channel-pill">Channel: ---------</span>
+                    </div>
+                  </div>
+                  <div class="invite-action-footer">
+                    <span class="invite-enter-hint">Press <strong>Enter ↵</strong> or</span>
+                    <button class="btn btn-primary btn-join-invite" id="btn-join-invite-stage">
+                      <span>🚀 Join Channel</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detected Channel ID Chip (Appears when link/ID detected) -->
+              <div class="detected-channel-banner" id="detected-channel-banner" style="display: none;">
+                <div class="det-banner-left">
+                  <span class="det-icon">🎯</span>
+                  <span class="det-text">Detected:</span>
+                  <code class="det-id" id="detected-channel-id">---------</code>
+                  <span class="det-active-badge" id="det-active-badge" style="display: none;">🟢 Live Active Room</span>
+                </div>
+                <div class="det-banner-right">
+                  <span class="det-enter-pill">Press <strong>Enter ↵</strong></span>
+                  <button class="btn btn-highlight btn-xs" id="btn-quick-join-detected">Join</button>
+                </div>
+              </div>
+
+              <!-- Search Results Dropdown Overlay (People, Houses & Rooms) -->
+              <div class="search-results-overlay" id="search-results-overlay" style="display: none;">
+                <div class="search-results-header">
+                  <div class="search-tabs">
+                    <button class="search-tab active" data-tab="all" id="tab-search-all">All (<span id="count-search-all">0</span>)</button>
+                    <button class="search-tab" data-tab="users" id="tab-search-users">👥 People (<span id="count-search-users">0</span>)</button>
+                    <button class="search-tab" data-tab="clubs" id="tab-search-clubs">🏠 Houses (<span id="count-search-clubs">0</span>)</button>
+                    <button class="search-tab" data-tab="rooms" id="tab-search-rooms">🎙️ Rooms (<span id="count-search-rooms">0</span>)</button>
+                  </div>
+                  <button class="btn-close-search" id="btn-close-search-results" title="Close search results">✕</button>
+                </div>
+                <div class="search-results-body" id="search-results-body">
+                  <!-- Dynamically populated search cards -->
+                </div>
+              </div>
+
+              <!-- Clean Feed Header & Refresh Button -->
+              <div class="feed-subnav-row">
+                <div class="feed-title-wrap">
+                  <span class="live-dot-pulse"></span>
+                  <span class="feed-heading-text">Live Channels</span>
+                </div>
+
+                <button class="btn btn-secondary btn-xs btn-refresh-feed" id="btn-refresh-feed" title="Refresh live channels feed">
+                  <span id="refresh-feed-icon">🔄</span> <span id="refresh-feed-label">Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Swipe Down / Pull-to-Refresh Banner -->
+            <div class="swipe-refresh-banner" id="swipe-refresh-banner">
+              <span class="swipe-icon">↓</span>
+              <span>Swipe down to refresh live channels</span>
+            </div>
+
+            <!-- Scrollable Rooms Stream Container with Join Buttons -->
+            <div class="rooms-stream-scrollable" id="rooms-stream-container">
+              <div class="rooms-stream" id="rooms-stream">
+                <!-- Dynamically rendered live rooms from get_feed_v3 -->
+              </div>
+
+              <!-- Pagination / Load More Bar -->
+              <div class="load-more-container" id="load-more-container">
+                <button class="btn btn-secondary btn-sm" id="btn-load-more-rooms">
+                  <span>⬇️ Load More Channels</span>
+                </button>
+              </div>
+            </div>
+
+          </aside>
+
+          <!-- RIGHT COLUMN: Active Channel Full Box (Expanded only when joined a room) -->
+          <main class="hallway-channel-viewport" id="hallway-channel-viewport" style="display: none;">
+            <div class="card channel-view-card" id="channel-view-card">
+
+              <!-- Channel Top Navigation Bar (NO "Back to Channels"!) -->
+              <div class="channel-view-topbar">
+                <div class="channel-view-topbar-left">
+                  <span class="channel-status-dot" id="channel-status-dot">🟢</span>
+                  <span class="channel-live-badge" id="channel-status-badge">CONNECTED</span>
+                  <span class="channel-id-chip" id="channel-view-id">-------</span>
+                </div>
+                <div class="channel-view-topbar-right">
+                  <label class="chat-tick-toggle" id="chat-tick-toggle" style="display: none;" title="Enable or disable room chat">
+                    <input type="checkbox" id="chk-channel-chat" checked>
+                    <span class="chat-tick-custom"></span>
+                    <span class="chat-tick-text" id="chat-tick-text">Chat</span>
+                  </label>
+                  <button class="btn btn-secondary btn-sm" id="btn-top-room-chat" style="display: none;" title="Toggle Room Chat Messages">
+                    <span>💬 Room Chat</span>
+                  </button>
+                  <button class="btn btn-danger btn-sm btn-end-room" id="btn-end-channel-view" style="display: none;" title="End room for everyone (Moderators only)">
+                    <span>🛑 End Room</span>
+                  </button>
+                  <button class="btn btn-warning btn-sm" id="btn-disable-replay-top" style="display: none;" title="Disable Replay for this room (Moderators only)">
+                    <span>📼 Disable Replay</span>
+                  </button>
+                  <div class="leave-controls-group">
+                    <button class="btn btn-danger btn-sm" id="btn-leave-channel-view" title="Leave channel quietly">
+                      <span>✌️ Leave Quietly</span>
+                    </button>
+                    <button class="btn-activity-view-info" id="btn-activity-history" title="View Room Activity Log & Notifications">
+                      <span>📋 Room Activity Log</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Channel Meta Header (Exact Channel Title & House Badge) -->
+              <div class="channel-meta-header">
+                <div class="channel-title-row">
+                  <div class="channel-title-cluster">
+                    <h2 class="channel-live-title" id="channel-live-title">Select a Channel</h2>
+                    <button class="btn-edit-title" id="btn-edit-channel-title" title="Edit channel title" style="display: none;">
+                      ✏️ Edit
+                    </button>
+                    <button class="btn-copy-stage-link" id="btn-copy-stage-link" title="Copy room link">
+                      🔗 Copy Link
+                    </button>
+                    <button class="btn-share-stage-link" id="btn-share-stage-link" title="Share room invite link (Unified invite)">
+                      📤 Share
+                    </button>
+                    <button class="btn-ping-stage-link" id="btn-ping-stage" title="Ping / invite followers and friends to channel">
+                      🔔 Ping
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Pinned Channel Link (Positioned on the channel box directly above the house name) -->
+                <div class="channel-pinned-link-bar" id="channel-pinned-link-bar" style="display: none;">
+                  <div class="pinned-link-content" id="pinned-link-content" style="display: none;">
+                    <div class="pinned-link-thumb-wrap" id="pinned-link-thumb-wrap">
+                      <img class="pinned-link-thumb" id="pinned-link-thumb" src="" alt="Thumbnail" style="display: none;">
+                      <span class="pinned-link-icon" id="pinned-link-fallback-icon">🔗</span>
+                    </div>
+                    <div class="pinned-link-meta" id="pinned-link-meta">
+                      <a class="pinned-link-anchor" id="pinned-link-anchor" href="#" target="_blank" rel="noopener noreferrer">Pinned Link</a>
+                      <div class="pinned-link-subtext" id="pinned-link-subtext">
+                        <span class="pinned-link-from" id="pinned-link-from" style="display: none;"></span>
+                        <span class="pinned-link-domain-sep" id="pinned-link-domain-sep" style="display: none;">•</span>
+                        <span class="pinned-link-domain" id="pinned-link-domain" style="display: none;"></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pinned-link-actions">
+                    <button class="btn-link-action" id="btn-edit-channel-link" style="display: none;" title="Edit Pinned Link">✏️ Edit</button>
+                    <button class="btn-link-action btn-link-danger" id="btn-remove-channel-link" style="display: none;" title="Remove Pinned Link">🗑️</button>
+                    <button class="btn-link-action" id="btn-add-channel-link" title="Pin a Link">🔗 Pin Link</button>
+                  </div>
+                </div>
+
+                <div class="channel-subhead-row">
+                  <span class="channel-house-pill" id="channel-house-pill" style="display: none;" title="View House Overview">
+                    🏰 <span id="channel-house-name">House Name</span>
+                  </span>
+                  <span class="channel-stats-text" id="channel-stats-text">
+                    🎙️ <span id="ch-speakers-count">0</span> in channel • 👥 <span id="ch-listeners-count">0</span> listening
+                    <span id="ch-cumulative-container" style="display: none;">• 👥 <span id="val-cumulative-count">0</span> total visitors</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Unified Participants Scroll (Speakers and Listeners at single view, not separated) -->
+              <div class="channel-participants-scroll" id="channel-participants-scroll">
+                <!-- Section 1: Speakers in Channel -->
+                <div class="channel-participants-section" id="section-speakers">
+                  <div class="channel-section-head">
+                    <div class="section-head-left">
+                      <span class="section-title-label">🎙️ Speakers in Channel</span>
+                      <span class="channel-count-badge" id="ch-speakers-badge">0</span>
+                    </div>
+                  </div>
+                  <div class="stage-speakers-grid" id="channel-speakers-grid">
+                    <!-- Speakers tiles with green star ★ for moderators -->
+                  </div>
+                </div>
+
+                <!-- Section 2: Listeners / Others in the room directly below in single view -->
+                <div class="channel-participants-section" id="section-listeners">
+                  <div class="channel-section-head">
+                    <div class="section-head-left">
+                      <span class="section-title-label">👥 Others in the room</span>
+                      <span class="channel-count-badge" id="ch-listeners-badge">0</span>
+                    </div>
+                  </div>
+                  <div class="stage-listeners-grid" id="channel-listeners-grid">
+                    <!-- Listeners tiles with Invite Speaker action when you are Speaker + Moderator -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Floating Reactions Canvas (Animated reaction emojis) -->
+              <div class="floating-reactions-container" id="floating-reactions-container"></div>
+
+              <!-- Top-Right Real-time Join/Leave Toast Container -->
+              <div class="channel-toast-container" id="channel-toast-container"></div>
+
+              <!-- Bottom Audio Controls Dock (Pinned to bottom) -->
+              <div class="channel-audio-dock" id="channel-audio-dock">
+                <div class="dock-left-controls">
+                  <button class="btn btn-secondary btn-sm dock-btn" id="btn-dock-hand" title="Raise Hand to Speak">
+                    <span id="dock-hand-icon">✋</span>
+                    <span id="dock-hand-label">Raise Hand</span>
+                    <span class="dock-hand-count-badge" id="dock-hand-count" style="display: none;">0</span>
+                  </button>
+                  <button class="btn btn-secondary btn-sm dock-btn" id="btn-dock-mute-others" title="Mute other speakers in channel">
+                    <span>🔇 Mute Others</span>
+                  </button>
+                  <button class="btn btn-secondary btn-sm dock-btn" id="btn-dock-react" title="Send emoji reaction">
+                    <span>😊 React</span>
+                  </button>
+                  <button class="btn btn-secondary btn-sm dock-btn" id="btn-dock-gif" title="GIF Reactions & Loop (Giphy)">
+                    <span>🎬 GIF</span>
+                  </button>
+                  <button class="btn btn-secondary btn-sm dock-btn" id="btn-dock-mod-history" title="Moderator Action History">
+                    <span>📝 History</span>
+                  </button>
+                  <button class="btn btn-warning btn-sm dock-btn" id="btn-dock-disable-replay" style="display: none;" title="Disable Replay for this room (Moderator)">
+                    <span>📼 Disable Replay</span>
+                  </button>
+                </div>
+
+                <!-- Emoji Reactions Popover Dropup (Channel / All Speakers) -->
+                <div class="channel-reactions-popover" id="channel-reactions-popover" style="display: none;">
+                  <div class="reactions-popover-title">React to Channel (All Speakers)</div>
+                  <div class="reactions-emoji-grid" id="reactions-emoji-grid">
+                    <!-- Populated dynamically from reactions.channel_reactions -->
+                    <button class="btn-emoji-react" data-emoji="👏" data-reaction-id="1">👏</button>
+                    <button class="btn-emoji-react" data-emoji="❤️" data-reaction-id="34">❤️</button>
+                    <button class="btn-emoji-react" data-emoji="🔥" data-reaction-id="2">🔥</button>
+                    <button class="btn-emoji-react" data-emoji="🎉" data-reaction-id="4">🎉</button>
+                    <button class="btn-emoji-react" data-emoji="😂" data-reaction-id="3">😂</button>
+                    <button class="btn-emoji-react" data-emoji="😮" data-reaction-id="5">😮</button>
+                    <button class="btn-emoji-react" data-emoji="🙏" data-reaction-id="6">🙏</button>
+                    <button class="btn-emoji-react" data-emoji="💯" data-reaction-id="7">💯</button>
+                  </div>
+                </div>
+
+                <div class="dock-right-controls">
+                  <button class="dock-join-pill" id="btn-dock-accept-speaker" style="display: none;" title="Join channel as speaker">
+                    <span class="dock-join-pill-icon" id="dock-join-icon">🎙️</span>
+                    <span class="dock-join-pill-status" id="dock-join-label">Join</span>
+                  </button>
+                  <button class="dock-mic-pill is-muted" id="btn-dock-mic" title="Mute / Unmute Microphone">
+                    <span class="dock-mic-pill-icon" id="dock-mic-icon">🔇</span>
+                    <span class="dock-mic-pill-status" id="dock-mic-label">Muted</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Extra & Manual Emoji Popover for Speakers (Windows & iOS) -->
+              <div class="extra-reactions-popover" id="extra-reactions-popover" style="display: none;">
+                <div class="extra-reactions-header">
+                  <div class="extra-reactions-title-wrap">
+                    <span class="extra-title-icon">✨</span>
+                    <span class="extra-reactions-title" id="extra-reactions-title">React to Speaker</span>
+                  </div>
+                  <button type="button" class="extra-reactions-close" id="btn-close-extra-reactions" title="Close">✕</button>
+                </div>
+                <!-- Dedicated Category Tabs Bar -->
+                <div class="extra-reactions-tabs-bar" id="extra-reactions-tabs">
+                  <button type="button" class="extra-react-tab active" data-cat="smileys" title="Smileys & Faces">😀</button>
+                  <button type="button" class="extra-react-tab" data-cat="gestures" title="Hands & Gestures">👏</button>
+                  <button type="button" class="extra-react-tab" data-cat="hearts" title="Hearts & Love">❤️</button>
+                  <button type="button" class="extra-react-tab" data-cat="party" title="Party & Fire">🔥</button>
+                  <button type="button" class="extra-react-tab" data-cat="objects" title="Animals & Objects">🚀</button>
+                  <button type="button" class="extra-react-tab" data-cat="all" title="All Windows & iOS Emojis">🌐 All</button>
+                </div>
+                <div class="extra-reactions-scroll-container">
+                  <div class="extra-reactions-grid" id="extra-reactions-grid">
+                    <!-- Populated dynamically with all Windows & iOS emojis -->
+                  </div>
+                </div>
+                <!-- Manual Emoji Input Bar -->
+                <div class="extra-reactions-custom-bar">
+                  <input type="text" id="extra-custom-emoji-input" class="extra-custom-emoji-input" placeholder="Type or paste emoji (Win + .)" maxlength="12" />
+                  <button type="button" id="btn-extra-send-custom" class="btn-extra-send-custom" title="Send reaction">React</button>
+                </div>
+                <!-- Downward pointing arrow anchored on top of user -->
+                <div class="extra-reactions-arrow arrow-bottom" id="extra-reactions-arrow"></div>
+              </div>
+
+            </div>
+
+            <!-- COLLAPSIBLE ROOM CHAT DRAWER (RIGHT-SIDE DOCKED BOX) -->
+            <aside class="channel-chat-panel" id="channel-chat-panel" style="display: none;">
+              <div class="chat-panel-header">
+                <div class="chat-header-title">
+                  <span class="chat-title-icon">💬</span> Room Chat <span class="chat-count-pill" id="chat-count-pill" style="display: none;">0</span>
+                </div>
+                <div class="chat-header-actions">
+                  <button type="button" class="btn-refresh-chat" id="btn-refresh-chat" title="Refresh messages">🔄</button>
+                  <button type="button" class="btn-close-chat" id="btn-close-chat" title="Close chat">✕</button>
+                </div>
+              </div>
+
+              <!-- Message Stream List -->
+              <div class="chat-messages-list" id="chat-messages-list">
+                <div class="chat-empty-state">
+                  <span class="chat-empty-icon">💭</span>
+                  <p>No messages yet in this room.</p>
+                </div>
+              </div>
+
+              <!-- Chat Input & Typing Footer -->
+              <div class="chat-panel-footer" id="chat-panel-footer">
+                <div class="chat-reply-preview-bar" id="chat-reply-bar" style="display: none;">
+                  <div class="chat-reply-bar-text">
+                    <span class="reply-arrow-symbol">↳</span> Replying to <strong id="chat-reply-name">User</strong>
+                  </div>
+                  <button type="button" class="btn-cancel-reply" id="btn-cancel-reply" title="Cancel reply">✕</button>
+                </div>
+                <form class="chat-send-form" id="chat-send-form">
+                  <div class="chat-input-wrapper">
+                    <textarea class="chat-input-text" id="chat-input-text" placeholder="Type a message to the room..." rows="1" maxlength="1000"></textarea>
+                  </div>
+                  <button type="submit" class="btn-chat-send" id="btn-chat-send" title="Send message (Enter)">
+                    <span class="send-icon">➤</span>
+                  </button>
+                </form>
+              </div>
+            </aside>
+          </main>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Floating Active Audio Stage Bar (Shown when joined a room) -->
+  <div class="active-room-floating-bar" id="active-room-floating-bar" style="display: none;">
+    <div class="floating-bar-left">
+      <span class="floating-live-dot">🟢</span>
+      <div class="floating-room-info">
+        <span class="floating-room-title" id="floating-room-title">Connected Room</span>
+        <span class="floating-room-channel" id="floating-room-channel">Channel ID</span>
+      </div>
+    </div>
+    <div class="floating-bar-actions">
+      <button class="btn btn-secondary btn-xs" id="btn-open-stage-modal">🎙️ View Channel</button>
+      <button class="btn btn-secondary btn-xs" id="btn-floating-mic">
+        <span id="floating-mic-icon">🎙️</span> <span id="floating-mic-label">Mute</span>
+      </button>
+      <button class="btn btn-danger btn-xs btn-end-room" id="btn-floating-end-room" style="display: none;" title="End Room (Moderator)">🛑 End</button>
+      <button class="btn btn-danger btn-xs" id="btn-floating-leave">✌️ Leave Quietly</button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SIGN OUT CONFIRMATION (YES/NO) & 5-SEC ANIMATED PROGRESS -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop signout-modal-backdrop" id="signout-confirm-modal" style="display: none;">
+    <div class="signout-modal-card startup-splash-card">
+      <div class="startup-logo-wrapper">
+        <div class="startup-loading-ring"></div>
+        <div class="startup-loading-ring-outer"></div>
+        <div class="startup-logo-rounded">
+          <span class="startup-logo-icon" id="signout-logo-icon">🚪</span>
+        </div>
+      </div>
+      <div class="startup-brand">
+        <h1 class="startup-title" id="signout-title">SIGN OUT</h1>
+        <p class="startup-subtitle" id="signout-subtitle">PowerDeck Pro Session</p>
+      </div>
+
+      <!-- State 1: Yes / No Question -->
+      <div id="signout-confirm-state" class="signout-state-box">
+        <p class="signout-question-text">
+          Are you sure you want to sign out?
+        </p>
+        <div class="signout-actions-row">
+          <button type="button" class="btn btn-secondary signout-btn" id="btn-signout-no">
+            ✕ No, Stay
+          </button>
+          <button type="button" class="btn btn-danger signout-btn" id="btn-signout-yes">
+            ✓ Yes, Sign Out
+          </button>
+        </div>
+      </div>
+
+      <!-- State 2: 5 Seconds Animated Progress (Loading Only) -->
+      <div id="signout-progress-state" class="signout-state-box" style="display: none;">
+        <div class="startup-loader-bar-wrap">
+          <div class="startup-loader-bar" id="signout-loader-bar" style="width: 0%; animation: none;"></div>
+        </div>
+        <div class="startup-status" id="signout-status-text">Signing out...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ABOUT US (CENTER BOX SHAPED ANIMATED) -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop about-modal-backdrop" id="about-us-modal" style="display: none;">
+    <div class="about-modal-box">
+      <button type="button" class="btn-close-modal about-close-btn" id="btn-close-about-modal" title="Close">✕</button>
+
+      <div class="about-modal-grid">
+        <!-- LEFT SIDE: Continuously Animated PowerDeck Pro Logo -->
+        <div class="about-left-col">
+          <div class="startup-logo-wrapper about-logo-wrapper">
+            <div class="startup-loading-ring"></div>
+            <div class="startup-loading-ring-outer"></div>
+            <div class="startup-logo-rounded about-logo-rounded">
+              <span class="startup-logo-icon">⚡</span>
+            </div>
+          </div>
+          <div class="about-brand-wrap">
+            <h2 class="about-brand-title">POWERDECK <span class="badge-pro">PRO</span></h2>
+            <p class="about-brand-sub">Clubhouse Music Playing Bot</p>
+          </div>
+          <div class="about-badge-pill">
+            <span class="badge-dot"></span> v2.0.1 Pro Edition
+          </div>
+          <div class="about-dev-tag">Developed with love ❤️</div>
+        </div>
+
+        <!-- RIGHT SIDE: Details, Description, Buy Me a Coffee QR Code & Contact -->
+        <div class="about-right-col">
+          <div class="about-header-text">
+            <h3 class="about-section-heading">About PowerDeck Pro</h3>
+            <p class="about-description-text">
+              <strong>Powerdeck pro is not affiliated with Clubhouse.</strong> Is a free software developed with love : please support us ☕
+            </p>
+          </div>
+
+          <!-- Buy Me a Coffee Showcase Box with QR Code -->
+          <div class="about-coffee-card">
+            <div class="about-coffee-qr-wrap">
+              <img src="assets/buymeacoffee_qr.png" alt="Buy Me a Coffee QR Code" class="about-coffee-qr-img" id="about-coffee-qr-img">
+            </div>
+            <div class="about-coffee-info">
+              <div class="about-coffee-title">☕ Buy Me a Coffee</div>
+              <div class="about-coffee-sub">Support independent software development:</div>
+              <a href="https://buymeacoffee.com/powerdeckpro" class="about-coffee-link" id="link-buymeacoffee" target="_blank" title="Open in browser">
+                buymeacoffee.com/powerdeckpro ↗
+              </a>
+              <div class="about-coffee-actions">
+                <button type="button" class="btn btn-warning btn-xs about-action-btn" id="btn-open-buymeacoffee">
+                  ☕ Support Us
+                </button>
+                <button type="button" class="btn btn-secondary btn-xs about-action-btn" id="btn-copy-buymeacoffee">
+                  📋 Copy Link
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact & Creator Details -->
+          <div class="about-contact-card">
+            <div class="about-contact-header">
+              <span class="about-contact-icon">💬</span>
+              <div class="about-contact-title">Telegram Contact & Official Community:</div>
+            </div>
+            <div class="about-contact-row">
+              <span class="about-contact-label">Developer:</span>
+              <a href="https://t.me/worldofmathan" class="about-contact-link" id="link-telegram-contact" target="_blank">
+                https://t.me/worldofmathan ↗
+              </a>
+            </div>
+            <div class="about-contact-row">
+              <span class="about-contact-label">Community:</span>
+              <a href="https://t.me/clubhousecodes" class="about-contact-link" id="link-telegram-group" target="_blank">
+                https://t.me/clubhousecodes ↗
+              </a>
+            </div>
+            <div class="about-contact-actions">
+              <button type="button" class="btn btn-primary btn-xs about-action-btn" id="btn-open-telegram">
+                ✈️ Developer
+              </button>
+              <button type="button" class="btn btn-success btn-xs about-action-btn" id="btn-open-telegram-group">
+                👥 Join Telegram Group
+              </button>
+              <button type="button" class="btn btn-secondary btn-xs about-action-btn" id="btn-copy-telegram-group">
+                📋 Copy Group Link
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modals -->
+
+  <!-- ========================================== -->
+  <!-- MODAL: APPLICATION AUTO-UPDATE CENTER -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop update-modal-backdrop" id="modal-update-dialog" style="display: none; z-index: 1000002;">
+    <div class="update-modal-box">
+      <button type="button" class="btn-close-modal update-close-btn" id="btn-close-update-modal" title="Close">✕</button>
+
+      <div class="update-modal-content">
+        <!-- Animated PowerDeck Pro Logo -->
+        <div class="startup-logo-wrapper update-logo-wrapper">
+          <div class="startup-loading-ring update-loading-ring"></div>
+          <div class="startup-loading-ring-outer update-loading-ring-outer"></div>
+          <div class="startup-logo-rounded update-logo-rounded">
+            <span class="startup-logo-icon">⚡</span>
+          </div>
+        </div>
+
+        <!-- 1. PROMPT VIEW: Update Found? Update or Not -->
+        <div class="update-text-wrap" id="update-prompt-view">
+          <div class="update-badge-pill" id="update-status-pill">
+            <span class="update-badge-dot"></span> PowerDeck Pro Auto-Update System
+          </div>
+          <h2 class="update-title" id="update-modal-title">PowerDeck Pro Update Available!</h2>
+          <p class="update-subtitle" id="update-modal-subtitle">A new version of PowerDeck Pro is available. Do you want to update now?</p>
+
+          <!-- Version Comparison Card -->
+          <div class="update-version-card">
+            <div class="update-version-col">
+              <span class="update-version-label">Current Version</span>
+              <span class="update-version-val" id="update-current-ver-val">v2.0.1</span>
+            </div>
+            <div class="update-version-divider">➔</div>
+            <div class="update-version-col highlight">
+              <span class="update-version-label">Latest Release</span>
+              <span class="update-version-val new-ver" id="update-latest-ver-val">v2.0.1</span>
+            </div>
+          </div>
+
+          <!-- Release Notes Changelog Box -->
+          <div class="update-notes-card">
+            <div class="update-notes-header">📋 Release Highlights & Notes:</div>
+            <div class="update-notes-body" id="update-notes-body">
+              Bug fixes, stability enhancements, and latest Clubhouse protocol updates.
+            </div>
+          </div>
+
+          <div class="update-actions-row">
+            <button type="button" class="btn btn-success update-btn-main" id="btn-update-download-now">
+              ⚡ Yes, Update Now
+            </button>
+            <button type="button" class="btn btn-secondary update-btn-dismiss" id="btn-update-remind-later">
+              No, Later
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. DOWNLOADING & INSTALLING LIVE VIEW -->
+        <div class="update-text-wrap" id="update-downloading-view" style="display: none; width: 100%;">
+          <div class="update-badge-pill" style="background: rgba(0, 210, 255, 0.15); color: #00D2FF; border-color: rgba(0, 210, 255, 0.35);">
+            <span class="update-badge-dot" style="background: #00D2FF; box-shadow: 0 0 8px #00D2FF;"></span> PowerDeck Pro Downloader
+          </div>
+          <h2 class="update-title">Downloading PowerDeck Pro Update...</h2>
+          <p class="update-subtitle" id="update-live-status-text">Downloading official PowerDeck Pro release package...</p>
+
+          <div class="update-progress-container" style="width: 100%; margin: 14px 0 6px 0;">
+            <div class="intercept-countdown-bar-wrap" style="height: 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.08);">
+              <div class="intercept-countdown-bar" id="update-progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00D2FF, #10B981); transition: width 0.2s ease;"></div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: var(--text-muted); font-weight: 600;">
+            <span id="update-progress-percent">0%</span>
+            <span id="update-progress-bytes">Preparing download...</span>
+          </div>
+
+          <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 14px; line-height: 1.4;">
+            💡 The installer will automatically launch and update PowerDeck Pro once finished.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: HELP & DOCUMENTATION (PLACEHOLDER) -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop help-modal-backdrop" id="help-modal" style="display: none;">
+    <div class="modal-card help-modal-card">
+      <div class="modal-header">
+        <div class="modal-title">❓ PowerDeck Pro Help & Support</div>
+        <button type="button" class="btn-close-modal" id="btn-close-help-modal">✕</button>
+      </div>
+      <div class="modal-body help-modal-body">
+        <div class="help-welcome-card">
+          <div class="help-icon">💡</div>
+          <div class="help-welcome-text">
+            <h4>Welcome to PowerDeck Pro</h4>
+            <p>Comprehensive user documentation and tutorials will be published in this section.</p>
+          </div>
+        </div>
+        <div class="help-quick-grid">
+          <div class="help-item">
+            <span class="help-item-icon">🎙️</span>
+            <div>
+              <strong>Audio Setup:</strong>
+              <p>Configure speaker output, microphone input, and virtual cable routing in Audio Settings.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <span class="help-item-icon">🔗</span>
+            <div>
+              <strong>Join Rooms:</strong>
+              <p>Paste any Clubhouse link (or room ID) in the hallway search bar and press Enter.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <span class="help-item-icon">🎨</span>
+            <div>
+              <strong>Visual Themes:</strong>
+              <p>Switch between 10 distinct interface themes and 22 accent color palettes anytime.</p>
+            </div>
+          </div>
+          <div class="help-item">
+            <span class="help-item-icon">☕</span>
+            <div>
+              <strong>Support & Community:</strong>
+              <p>Contact developer at <a href="https://t.me/worldofmathan" class="help-link" id="help-link-telegram">@worldofmathan</a> or join our Telegram group <a href="https://t.me/clubhousecodes" class="help-link" id="help-link-telegram-group">@clubhousecodes</a>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="btn-help-dismiss">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: RAW PROFILE JSON INSPECTOR -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="json-modal" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">📄 profile.json Configuration Payload</div>
+        <button class="btn-close-modal" id="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <textarea id="modal-json-text" readonly></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-copy-modal-json">📋 Copy JSON</button>
+        <button class="btn btn-primary" id="btn-modal-dismiss">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: START NEW AUDIO ROOM (CLUBHOUSE API) -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="create-room-modal" style="display: none;">
+    <div class="modal-card modal-create-room-card">
+      <div class="modal-header">
+        <div class="modal-title">🎙️ Start a Room</div>
+        <button class="btn-close-modal" id="btn-close-create-modal">✕</button>
+      </div>
+      <div class="modal-body create-room-body">
+
+        <!-- Room Access Type Selector -->
+        <div class="form-group">
+          <label class="form-label-bold">Room Privacy / Audience:</label>
+          <div class="create-room-privacy-grid" id="create-privacy-selector">
+            <button class="privacy-type-pill active" data-privacy="public" id="pill-privacy-public">
+              <span class="privacy-icon">🌍</span>
+              <span class="privacy-name">Public</span>
+              <span class="privacy-desc">Open to anyone</span>
+            </button>
+            <button class="privacy-type-pill" data-privacy="house" id="pill-privacy-house">
+              <span class="privacy-icon">🏠</span>
+              <span class="privacy-name">House</span>
+              <span class="privacy-desc">Clubhouse Houses</span>
+            </button>
+            <button class="privacy-type-pill" data-privacy="friend_of_friend" id="pill-privacy-fof">
+              <span class="privacy-icon">👥</span>
+              <span class="privacy-name">Social</span>
+              <span class="privacy-desc">Friends of friends</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- House Selector (Shown when House privacy is active) -->
+        <div class="form-group" id="create-house-picker-group" style="display: none;">
+          <div class="house-picker-header-row">
+            <label class="form-label-bold" style="margin-bottom: 0;">Choose House to Host In:</label>
+            <span class="house-picker-selected-hint" id="house-picker-selected-hint"></span>
+          </div>
+          <div class="house-picker-container" id="create-house-picker-container">
+            <div class="house-picker-loading">Loading your houses...</div>
+          </div>
+        </div>
+
+        <!-- Room Topic / Name Input -->
+        <div class="form-group">
+          <label class="form-label-bold" for="create-room-topic">Room Title / Topic:</label>
+          <input type="text" id="create-room-topic" class="input-styled" placeholder="What do you want to talk about? (Optional)" maxlength="120">
+        </div>
+
+        <!-- Room Settings Toggles -->
+        <div class="create-room-toggles-row">
+          <div class="create-toggle-item">
+            <div class="create-toggle-info">
+              <span class="create-toggle-title">Replays</span>
+              <span class="create-toggle-sub">Allow listeners to replay this room</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="check-create-replays" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <div class="create-toggle-item">
+            <div class="create-toggle-info">
+              <span class="create-toggle-title">Room Chat</span>
+              <span class="create-toggle-sub">Enable text messages in room</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="check-create-chat" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-create-room">Cancel</button>
+        <button class="btn btn-highlight btn-lg" id="btn-create-room-start">
+          <span>🎙️ Start Room</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: 10 VISUAL INTERFACES STUDIO -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-interface-switcher" style="display: none;">
+    <div class="modal-card modal-interface-card">
+      <div class="modal-header">
+        <div class="interface-modal-head-titles">
+          <div class="interface-modal-badge">✨ 10 VISUAL TREATS</div>
+          <h3 class="modal-title" style="margin: 2px 0 0; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+            <span>🎨 PowerDeck Interface Studio</span>
+          </h3>
+          <p class="modal-sub" style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">
+            Switch instantly between 10 completely different visual interfaces with custom styles, palettes, and channel lighting.
+          </p>
+        </div>
+        <button class="modal-close" id="btn-close-interface-modal" title="Close">✕</button>
+      </div>
+
+      <div class="interface-cards-grid" id="interface-cards-grid">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
+
+      <div class="modal-footer" style="display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--card-border);">
+        <div class="interface-shortcut-hint" style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+          <span>💡 Quick Switch:</span>
+          <kbd style="background: var(--surface-3); border: 1px solid var(--card-border); padding: 2px 6px; border-radius: 4px; font-size: 11px; font-family: monospace;">Alt + I</kbd>
+          <span>or click <b>⇄</b> in top bar to cycle</span>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btn-done-interface-modal">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: LIVE ROOM & AGORA CHANNEL VIEWER -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-stage-viewer" style="display: none;">
+    <div class="modal-card modal-stage-card">
+      <div class="modal-header">
+        <div class="stage-tag-row">
+          <span class="stage-badge" id="stage-status-badge">🟢 AGORA VOICE CHANNEL</span>
+          <span class="stage-ping" id="stage-ping-badge">24ms</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-stage-modal">✕</button>
+      </div>
+
+      <div class="modal-body stage-modal-body">
+        <div class="stage-room-header-box">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+            <div>
+              <h2 class="stage-room-title" id="stage-room-title">⚡ Live Channel</h2>
+              <div class="stage-room-channel" id="stage-room-channel">Channel: -</div>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
+              <button class="btn-copy-stage-link" id="btn-stage-modal-copy-link" title="Copy room link" style="margin-left: 0;">🔗 Copy Link</button>
+              <button class="btn-share-stage-link" id="btn-stage-modal-share-link" title="Share room invite link">📤 Share</button>
+              <button class="btn-ping-stage-link" id="btn-stage-modal-ping" title="Ping followers / friends to room">🔔 Ping</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Channel Section 1: Speakers & Moderators -->
+        <div class="stage-section-head">
+          <span class="section-title-label">🎙️ Speakers & Channel</span>
+          <span class="stage-count-badge" id="speakers-count-badge">0</span>
+        </div>
+        <div class="stage-speakers-grid" id="stage-speakers-grid">
+          <!-- Dynamically populated speakers with green star mod icons -->
+        </div>
+
+        <!-- Stage Section 2: Listeners in the Room -->
+        <div class="stage-section-head" style="margin-top: 14px;">
+          <span class="section-title-label">👥 Others in the room</span>
+          <span class="stage-count-badge" id="listeners-count-badge">0</span>
+        </div>
+        <div class="stage-listeners-grid" id="stage-listeners-grid">
+          <!-- Dynamically populated listeners -->
+        </div>
+
+        <!-- Stage Audio Controls Panel -->
+        <div class="stage-controls-panel">
+          <div class="stage-btns-row">
+            <button class="stage-ctrl-btn active" id="btn-mic-toggle" title="Mute / Unmute Microphone">
+              <span class="ctrl-icon" id="mic-icon">🎙️</span>
+              <span class="ctrl-label" id="mic-label">Unmuted</span>
+            </button>
+            <button class="stage-ctrl-btn" id="btn-raise-hand" title="Raise Hand to Speak">
+              <span class="ctrl-icon" id="hand-icon">✋</span>
+              <span class="ctrl-label" id="hand-label">Raise Hand</span>
+            </button>
+            <button class="stage-ctrl-btn btn-warning" id="btn-stage-modal-disable-replay" style="display: none;" title="Disable Replay for this room (Moderator)">
+              <span class="ctrl-icon">📼</span>
+              <span class="ctrl-label">Disable Replay</span>
+            </button>
+            <button class="stage-ctrl-btn btn-danger btn-end-room" id="btn-stage-end-room" style="display: none;" title="End Room for everyone (Moderators only)">
+              <span class="ctrl-icon">🛑</span>
+              <span class="ctrl-label">End Room</span>
+            </button>
+            <button class="stage-ctrl-btn btn-leave" id="btn-leave-room" title="Leave Channel Quietly">
+              <span class="ctrl-icon">✌️</span>
+              <span class="ctrl-label">Leave Quietly</span>
+            </button>
+          </div>
+
+          <!-- Volume Slider -->
+          <div class="volume-slider-row">
+            <span class="vol-icon" id="stage-vol-icon" title="Ctrl+X to mute/unmute">🔊</span>
+            <input type="range" min="0" max="250" value="100" class="vol-slider" id="stage-volume-slider">
+            <span class="vol-pct" id="stage-volume-pct">100%</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-dismiss-stage-modal">Minimize Channel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: PERSON PROFILE INSPECTOR (STEP 3) -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-user-profile" style="display: none;">
+    <div class="modal-card modal-profile-card">
+      <div class="modal-header">
+        <div class="modal-title">👤 Member Profile</div>
+        <button class="btn-close-modal" id="btn-close-profile-modal">✕</button>
+      </div>
+      <div class="modal-body profile-modal-body">
+
+        <!-- Profile Top Banner -->
+        <div class="profile-card-top">
+          <div class="profile-card-header-main">
+            <div class="profile-card-avatar-wrap" id="pm-avatar-wrap" title="Click to view photo history" style="cursor: pointer;">
+              <img src="" alt="Avatar" id="pm-avatar" class="pm-avatar" style="display: none;">
+              <div class="pm-avatar-fallback" id="pm-avatar-fallback">👤</div>
+              <div class="pm-avatar-photo-hint" title="View Photo History">📷</div>
+            </div>
+            <div class="profile-card-main-meta">
+              <div class="pm-name-row">
+                <h2 class="pm-name" id="pm-name">Loading...</h2>
+                <span class="badge-yellow-plus" id="pm-paid-plus" title="Clubhouse Plus Member" style="display: none;">+</span>
+                <span class="pm-verified-badge" id="pm-verified-badge" title="Verified Member">✓</span>
+                <span class="pm-karma-badge" id="pm-karma-badge" style="display: none;"></span>
+              </div>
+              <div class="pm-handles-row">
+                <span class="pm-username" id="pm-username">@username</span>
+                <span class="pm-id-badge" id="pm-user-id">ID: 000000</span>
+              </div>
+            </div>
+          </div>
+          <div class="profile-card-action-wrap" id="pm-action-wrap">
+            <button class="btn btn-secondary btn-sm btn-react-action" id="btn-pm-react" title="React to this member" style="display: none !important;">
+              <span>😊 React</span>
+            </button>
+            <button class="btn btn-primary btn-sm btn-follow-action" id="btn-pm-follow">
+              <span id="pm-follow-label">+ Follow</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-pm-copy-link" title="Copy profile link">
+              <span>🔗 Copy Link</span>
+            </button>
+            <button class="btn btn-outline-danger btn-sm" id="btn-pm-remove-from-room" title="Remove user from this room (Moderator)" style="display: none !important;">
+              <span>🚫 Remove from Room</span>
+            </button>
+            <button class="btn btn-outline-danger btn-sm btn-block-action" id="btn-pm-block" title="Block this user" style="display: none;">
+              <span>🚫 Block</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Room Inviter Banner (Channel Invited By User Profile) -->
+        <div class="pm-room-inviter-banner" id="pm-room-inviter-banner" style="display: none;">
+          <div class="pm-room-inviter-label">
+            <span>✨ Invited to the room by</span>
+          </div>
+          <div class="pm-room-inviter-card" id="pm-room-inviter-card" title="Click to view inviter profile">
+            <img src="" class="pm-room-inviter-avatar" id="pm-room-inviter-avatar" alt="Inviter avatar" style="display: none;">
+            <div class="pm-room-inviter-fallback" id="pm-room-inviter-fallback">👤</div>
+            <div class="pm-room-inviter-info">
+              <span class="pm-room-inviter-name" id="pm-room-inviter-name">-</span>
+              <span class="pm-room-inviter-handle" id="pm-room-inviter-handle"></span>
+            </div>
+            <span class="pm-room-inviter-arrow">➔</span>
+          </div>
+        </div>
+
+        <!-- Profile Stats Grid -->
+        <div class="profile-stats-grid">
+          <div class="pstat-item pstat-clickable" id="pm-followers-stat-btn" title="Click to view followers list">
+            <div class="pstat-val" id="pm-followers-count">0</div>
+            <div class="pstat-label">Followers</div>
+          </div>
+          <div class="pstat-item pstat-clickable" id="pm-following-stat-btn" title="Click to view following list">
+            <div class="pstat-val" id="pm-following-count">0</div>
+            <div class="pstat-label">Following</div>
+          </div>
+          <div class="pstat-item pstat-clickable" id="pm-friends-stat-btn" title="Click to view friends (mutuals) list">
+            <div class="pstat-val" id="pm-friends-count">0</div>
+            <div class="pstat-label">Friends</div>
+          </div>
+          <div class="pstat-item">
+            <div class="pstat-val" id="pm-clubs-count">0</div>
+            <div class="pstat-label">Houses</div>
+          </div>
+        </div>
+
+        <!-- Bio Container -->
+        <div class="pm-section">
+          <div class="pm-section-label">Bio</div>
+          <div class="pm-bio-box" id="pm-bio">No bio provided.</div>
+        </div>
+
+        <!-- Nominated By / Joined Details -->
+        <div class="pm-footer-meta-grid">
+          <div class="pm-meta-block">
+            <div class="pm-meta-title">📅 Member Since</div>
+            <div class="pm-meta-desc" id="pm-created-date">-</div>
+          </div>
+          <div class="pm-meta-block">
+            <div class="pm-meta-title">🤝 Nominated By</div>
+            <div class="pm-inviter-row" id="pm-inviter-row">
+              <img src="" class="pm-inviter-avatar" id="pm-inviter-avatar" style="display: none;">
+              <div class="pm-inviter-fallback" id="pm-inviter-fallback">👤</div>
+              <div class="pm-inviter-text">
+                <span class="pm-inviter-name" id="pm-inviter-name">-</span>
+                <span class="pm-inviter-handle" id="pm-inviter-handle"></span>
+              </div>
+            </div>
+            <div class="pm-meta-desc" id="pm-inviter-none" style="display: none; color: var(--text-muted); font-size: 12.5px; margin-top: 2px;">Joined Clubhouse directly</div>
+          </div>
+        </div>
+
+        <!-- Followed Houses & Clubs List -->
+        <div class="pm-section" id="pm-clubs-section" style="display: none;">
+          <div class="pm-section-label">🏰 Followed Houses & Clubs</div>
+          <div class="pm-clubs-list" id="pm-clubs-list">
+            <!-- Dynamically populated houses -->
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-pm-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: PHOTO HISTORY LIGHTBOX & LOCK BOX -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-photo-lightbox" style="display: none;">
+    <div class="modal-card modal-photo-lightbox-card">
+      <div class="modal-header photo-lightbox-header">
+        <div class="photo-lightbox-user-info">
+          <span class="photo-lightbox-icon">📷</span>
+          <div>
+            <div class="photo-lightbox-name" id="plb-user-name">User Photos</div>
+            <div class="photo-lightbox-handle" id="plb-user-handle">@username</div>
+          </div>
+        </div>
+        <button class="btn-close-modal" id="btn-close-photo-lightbox" title="Close Photo Viewer">✕</button>
+      </div>
+
+      <div class="photo-lightbox-viewport" id="plb-viewport">
+        <!-- Loading State -->
+        <div class="plb-state-loading" id="plb-loading" style="display: flex;">
+          <div class="plb-spinner"></div>
+          <span class="plb-loading-text">Loading photo history...</span>
+        </div>
+
+        <!-- Locked / Private State Box -->
+        <div class="plb-state-locked" id="plb-locked" style="display: none;">
+          <div class="plb-locked-badge-icon">🔒</div>
+          <h3 class="plb-locked-title">Photos Locked / Private</h3>
+          <p class="plb-locked-desc" id="plb-locked-desc">This user has locked their photo history or restricted access to their photos.</p>
+          <div class="plb-locked-footer">
+            <span class="plb-lock-pill">Clubhouse Privacy Protected</span>
+          </div>
+        </div>
+
+        <!-- Active Photo Viewer Container -->
+        <div class="plb-image-container" id="plb-image-container" style="display: none;">
+          <button class="plb-nav-arrow plb-nav-prev" id="btn-plb-prev" title="Previous photo (←)">‹</button>
+          <div class="plb-img-wrap">
+            <img src="" alt="User Photo" id="plb-main-img" class="plb-main-img">
+          </div>
+          <button class="plb-nav-arrow plb-nav-next" id="btn-plb-next" title="Next photo (→)">›</button>
+        </div>
+
+        <!-- Last Slide: Upload Photo Slide -->
+        <div class="plb-upload-slide" id="plb-upload-slide" style="display: none;">
+          <div class="plb-upload-card">
+            <div class="plb-upload-icon">📷</div>
+            <h3 class="plb-upload-title">Upload New Profile Photo</h3>
+            <p class="plb-upload-desc">Select an image from your computer to crop and add to your Clubhouse photo history.</p>
+            <button class="btn btn-primary" id="btn-plb-launch-crop">✂️ Upload & Crop Photo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lightbox Footer with Info & Thumbnails -->
+      <div class="photo-lightbox-footer" id="plb-footer" style="display: none;">
+        <div class="plb-meta-bar">
+          <span class="plb-counter" id="plb-counter">Photo 1 of 1</span>
+          <div class="plb-actions" id="plb-actions">
+            <button class="btn btn-primary btn-xs" id="btn-plb-set-avatar" title="Set this photo as current profile picture" style="display: none;">⭐ Set Profile Picture</button>
+            <button class="btn btn-danger btn-xs" id="btn-plb-delete" title="Delete this photo from your history" style="display: none;">🗑️ Delete</button>
+            <button class="btn btn-secondary btn-xs" id="btn-plb-copy-url" title="Copy high-res photo URL">📋 Copy Link</button>
+            <button class="btn btn-primary btn-xs" id="btn-plb-download-photo" title="Download image to your computer">⬇️ Download</button>
+          </div>
+        </div>
+        <div class="plb-thumbs-row" id="plb-thumbs-row" style="display: none;">
+          <!-- Injected thumbnails -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SOCIAL CLUB (HOUSE) INSPECTOR (STEP 3) -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-social-club" style="display: none;">
+    <div class="modal-card modal-club-card">
+      <div class="modal-header">
+        <div class="modal-title">🏰 House Overview</div>
+        <button class="btn-close-modal" id="btn-close-club-modal">✕</button>
+      </div>
+      <div class="modal-body club-modal-body" style="overflow-x: hidden;">
+        <!-- Top Profile Banner (Like Member Profile Modal) -->
+        <div class="profile-card-top">
+          <div class="profile-card-header-main" style="align-items: flex-start;">
+            <div class="profile-card-avatar-wrap" id="cm-avatar-wrap" title="Click to view full picture & download" style="cursor: pointer; width: 84px; height: 84px; flex-shrink: 0; position: relative;">
+              <img src="" alt="House Logo" id="cm-avatar" class="pm-avatar" style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 20px;">
+              <div class="pm-avatar-fallback" id="cm-avatar-fallback" style="width: 100%; height: 100%; border-radius: 20px; font-size: 34px; font-weight: 700; display: flex; align-items: center; justify-content: center; background: var(--surface-3);">🏰</div>
+              <div class="pm-avatar-photo-hint" id="cm-avatar-edit-badge" title="Change House Photo (Admin)" style="display: none;">📷</div>
+            </div>
+            <input type="file" id="input-cm-photo-file" accept="image/jpeg,image/png,image/webp,image/jpg" style="display: none;">
+            
+            <div class="profile-card-main-meta" style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px;">
+              <div class="pm-name-row" style="gap: 8px; flex-wrap: wrap; align-items: center;">
+                <h2 class="cm-name" id="cm-name" style="font-size: 22px; font-weight: 800; color: var(--text-primary); line-height: 1.25; word-break: break-word; overflow: visible; white-space: normal; margin: 0;">House</h2>
+                <span class="cm-live-rooms-badge" id="cm-live-rooms-badge" style="display: none; font-size: 11px; padding: 2px 8px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 6px; color: #4ade80; font-weight: 600;">
+                  🟢 <span id="cm-live-rooms-count">0</span> Live Now
+                </span>
+                <button class="btn btn-sm btn-cm-invite-pill" id="btn-cm-open-invite-modal" title="Invite Members to House" style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; padding: 4px 12px; border-radius: 9999px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3); cursor: pointer; transition: all 0.18s ease;">
+                  <span style="font-size: 14px; font-weight: 800; line-height: 1;">+</span>
+                  <span>Invite</span>
+                </button>
+              </div>
+              <div class="pm-handles-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px;">
+                <span class="pm-username" id="cm-slug-badge" style="font-size: 13px; color: var(--text-muted); font-weight: 500;">@house</span>
+                <div id="cm-founder-tag" style="display: none; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; background: rgba(59, 130, 246, 0.12); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.25);" title="Click to view founder profile">
+                  <span style="font-size: 11px;">⭐</span>
+                  <span style="color: var(--text-muted);">Founder:</span>
+                  <span id="cm-founder-name" style="font-weight: 600; color: #60a5fa; text-decoration: underline;"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dedicated Action Row (Spacious & Clean - Never Squeezes Name!) -->
+          <div class="profile-card-action-wrap" style="display: flex; align-items: center; gap: 10px; width: 100%; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.06); flex-wrap: wrap;">
+            <button class="btn btn-highlight btn-sm" id="btn-cm-start-room" style="display: none; flex: 1; min-width: 120px; justify-content: center; height: 36px; font-size: 13px; font-weight: 700;" title="Start a live room in this house">
+              <span>🎙️ Start Room</span>
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-cm-action" style="flex: 1; min-width: 110px; justify-content: center; height: 36px; font-size: 13px; font-weight: 700;">Join House</button>
+            <button class="btn btn-secondary btn-sm" id="btn-cm-settings" style="display: none; height: 36px; font-size: 13px; padding: 0 14px;" title="House Settings & Permissions">
+              <span>⚙️ Settings</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-cm-copy-link" style="height: 36px; font-size: 13px; padding: 0 14px;" title="Copy House link">
+              <span>🔗 Copy Link</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4-Stat Grid like Profile -->
+        <div class="club-stats-grid">
+          <div class="cstat-item cstat-clickable" id="btn-cm-open-members" title="Click to view all house members">
+            <div class="cstat-val" id="cm-members-count">0</div>
+            <div class="cstat-label">👥 Members</div>
+          </div>
+          <div class="cstat-item cstat-clickable" id="btn-cm-jump-live" title="View live channels">
+            <div class="cstat-val" id="cm-stat-live">0</div>
+            <div class="cstat-label">🟢 Live Channels</div>
+          </div>
+          <div class="cstat-item">
+            <div class="cstat-val" id="cm-stat-policy">Open</div>
+            <div class="cstat-label">🌐 Entry Policy</div>
+          </div>
+          <div class="cstat-item">
+            <div class="cstat-val" id="cm-stat-chat">All</div>
+            <div class="cstat-label">💬 Chat Mode</div>
+          </div>
+        </div>
+
+        <!-- Formatted House Description -->
+        <div class="pm-section">
+          <div class="pm-section-label">ℹ️ About This House</div>
+          <div class="pm-bio-box" id="cm-desc" style="white-space: pre-wrap; word-break: break-word; line-height: 1.6; font-size: 13.5px; max-height: 180px; overflow-y: auto;">Welcome to this Clubhouse house.</div>
+        </div>
+
+        <!-- Separate House Share Link Section -->
+        <div class="pm-section">
+          <div class="pm-section-label">🔗 House Share Link</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; flex: 1; min-width: 0;">
+              <span style="font-size: 15px; flex-shrink: 0;">🌐</span>
+              <span id="cm-share-url-text" style="font-size: 12.5px; color: var(--accent); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; word-break: break-all; font-family: monospace; cursor: pointer;" title="Click to copy link">https://www.clubhouse.com/house/...</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-cm-copy-url-bar" style="flex-shrink: 0; font-weight: 600;" title="Copy House URL">📋 Copy Link</button>
+          </div>
+        </div>
+
+        <!-- Live Rooms in this House Section -->
+        <div class="pm-section" id="cm-live-rooms-section" style="display: none;">
+          <div class="pm-section-label">🔴 Live Rooms in this House</div>
+          <div class="cm-live-rooms-list" id="cm-live-rooms-list">
+            <!-- Dynamically populated live rooms with speakers & join button -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cm-close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: HOUSE SETTINGS & PERMISSIONS       -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-house-settings" style="display: none;">
+    <div class="modal-card modal-house-settings-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap" style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">⚙️</span>
+          <h3 class="modal-title" id="modal-hs-title" style="margin: 0; font-size: 16px; font-weight: 700;">House Settings</h3>
+        </div>
+        <button class="btn-close-modal" id="btn-close-house-settings">✕</button>
+      </div>
+
+      <div class="modal-body hs-modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; max-height: 75vh; overflow-y: auto;">
+        
+        <!-- Status Notification Box -->
+        <div id="hs-status-box" style="display: none; padding: 10px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 500; text-align: center;">
+          <span id="hs-status-text"></span>
+        </div>
+
+        <!-- 1. House Photo & Basic Info -->
+        <div class="hs-section" style="display: flex; gap: 16px; align-items: center; padding: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;">
+          <div class="hs-avatar-wrap" id="hs-avatar-wrap" style="position: relative; cursor: pointer; flex-shrink: 0;" title="Click to change house photo">
+            <img src="" id="hs-avatar-img" style="width: 64px; height: 64px; border-radius: 16px; object-fit: cover; display: none; border: 1px solid var(--border);">
+            <div id="hs-avatar-fallback" style="width: 64px; height: 64px; border-radius: 16px; background: var(--primary); color: #fff; font-size: 24px; font-weight: bold; display: flex; align-items: center; justify-content: center;">🏰</div>
+            <div style="position: absolute; bottom: -2px; right: -2px; background: rgba(0,0,0,0.8); border: 1px solid var(--border); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px;">📷</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+            <span style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">House Photo</span>
+            <span style="font-size: 11.5px; color: var(--text-muted);">Click avatar or browse to update house photo</span>
+            <button class="btn btn-secondary btn-xs" id="btn-hs-browse-photo" style="align-self: flex-start; margin-top: 2px;">
+              <span>📷 Change Photo</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. House Name -->
+        <div class="hs-section" style="display: flex; flex-direction: column; gap: 8px;">
+          <label class="form-label-bold" for="input-hs-name">House Name:</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="input-hs-name" class="input-styled" style="flex: 1;" placeholder="Enter house name..." maxlength="60">
+            <button class="btn btn-primary btn-sm" id="btn-hs-save-name">
+              <span>Save Name</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. House Description -->
+        <div class="hs-section" style="display: flex; flex-direction: column; gap: 8px;">
+          <label class="form-label-bold" for="input-hs-description">House Description:</label>
+          <textarea id="input-hs-description" class="input-styled" style="min-height: 72px; resize: vertical;" placeholder="Add description for members and visitors..." maxlength="500"></textarea>
+          <button class="btn btn-primary btn-sm" id="btn-hs-save-desc" style="align-self: flex-end;">
+            <span>Save Description</span>
+          </button>
+        </div>
+
+        <!-- 4. House Permission Settings: Who Can Join -->
+        <div class="hs-section" style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <label class="form-label-bold" style="margin: 0;">Who Can Join:</label>
+            <span style="font-size: 11.5px; color: var(--text-muted);">Select house entry policy</span>
+          </div>
+
+          <div class="hs-join-options" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Option 1: Open for all -->
+            <label class="hs-option-card" id="card-hs-join-open" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--surface-2); border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="radio" name="hs-join-radio" id="radio-hs-join-open" value="open" style="cursor: pointer;">
+                <div>
+                  <div style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">🌐 Open for All</div>
+                  <div style="font-size: 11.5px; color: var(--text-muted);">Anyone on Clubhouse can join immediately without approval</div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Option 2: Waitlist -->
+            <label class="hs-option-card" id="card-hs-join-waitlist" style="display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; background: var(--surface-2); border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <input type="radio" name="hs-join-radio" id="radio-hs-join-waitlist" value="waitlist" style="cursor: pointer;">
+                  <div>
+                    <div style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">📋 Waitlist</div>
+                    <div style="font-size: 11.5px; color: var(--text-muted);">New applicants join waitlist and require admin approval</div>
+                  </div>
+                </div>
+                <button class="btn btn-secondary btn-xs" id="btn-hs-view-waitlist" style="display: none;" title="View and approve applicants">
+                  <span>👥 View Waitlist</span>
+                </button>
+              </div>
+
+              <!-- Waitlist Sub-options (visible when waitlist selected) -->
+              <div id="hs-waitlist-sub-box" style="display: none; padding-top: 10px; border-top: 1px solid var(--border); flex-direction: column; gap: 10px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 12.5px; font-weight: 600; color: var(--text-primary);">Enable Waitlist Question</span>
+                  <label class="switch" style="margin-bottom: 0;">
+                    <input type="checkbox" id="check-hs-waitlist-question">
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+                <div id="hs-waitlist-question-wrap" style="display: none; flex-direction: column; gap: 6px;">
+                  <span style="font-size: 11.5px; color: var(--text-muted);">Question shown to applicants when requesting to join:</span>
+                  <div style="display: flex; gap: 8px;">
+                    <input type="text" id="input-hs-waitlist-question" class="input-styled" style="flex: 1;" placeholder="e.g. Why do you want to join this house?" maxlength="200">
+                    <button class="btn btn-primary btn-xs" id="btn-hs-save-waitlist-question">
+                      <span>Save Question</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </label>
+
+            <!-- Option 3: Invite-only -->
+            <label class="hs-option-card" id="card-hs-join-invite" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--surface-2); border: 1.5px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="radio" name="hs-join-radio" id="radio-hs-join-invite" value="invite" style="cursor: pointer;">
+                <div>
+                  <div style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">🔒 Invite-Only</div>
+                  <div style="font-size: 11.5px; color: var(--text-muted);">Users can only join when directly invited by house members</div>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 5. Additional House Toggles -->
+        <div class="hs-section" id="hs-toggles-section" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Toggle: Members Visibility -->
+          <div class="create-toggle-item" id="hs-toggle-hidden-row" style="padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer;">
+            <div style="display: flex; flex-direction: column; gap: 3px; pointer-events: none;">
+              <span style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">Hide Members List</span>
+              <span style="font-size: 11.5px; color: var(--text-muted);">Keep the house member list hidden from non-members</span>
+            </div>
+            <label class="switch" style="margin-bottom: 0; flex-shrink: 0;">
+              <input type="checkbox" id="check-hs-membership-hidden">
+              <span class="slider round"></span>
+            </label>
+          </div>
+
+          <!-- Toggle: Allow Member Invites -->
+          <div class="create-toggle-item" id="hs-toggle-invites-row" style="padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer;">
+            <div style="display: flex; flex-direction: column; gap: 3px; pointer-events: none;">
+              <span style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">Let Members Give Invites</span>
+              <span style="font-size: 11.5px; color: var(--text-muted);">Allow regular house members to invite their friends</span>
+            </div>
+            <label class="switch" style="margin-bottom: 0; flex-shrink: 0;">
+              <input type="checkbox" id="check-hs-automatic-invites">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 6. Member Permissions (Room & Chat Settings) -->
+        <div class="hs-section" style="display: flex; flex-direction: column; gap: 12px; padding: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 13.5px; font-weight: 700; color: var(--text-primary);">🎙️ Member Permissions</span>
+              <span style="font-size: 11.5px; color: var(--text-muted);">Configure who can start rooms, speak, and access house chats</span>
+            </div>
+            <button class="btn btn-primary btn-xs" id="btn-hs-save-permissions">
+              <span>Save Permissions</span>
+            </button>
+          </div>
+
+          <!-- Permission 1: Start a Room -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label class="form-label-bold" for="select-hs-create-rooms-perm" style="font-size: 12.5px; margin: 0;">1. Start a Room:</label>
+            <select id="select-hs-create-rooms-perm" class="input-styled" style="height: 36px; padding: 4px 10px; cursor: pointer;">
+              <option value="1">All Members</option>
+              <option value="3">Admins and Leaders</option>
+            </select>
+          </div>
+
+          <!-- Permission 2: Speak in a Room -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label class="form-label-bold" for="select-hs-speaking-perm" style="font-size: 12.5px; margin: 0;">2. Speak in a Room:</label>
+            <select id="select-hs-speaking-perm" class="input-styled" style="height: 36px; padding: 4px 10px; cursor: pointer;">
+              <option value="1">Everyone</option>
+              <option value="2">Moderator Chooses</option>
+            </select>
+          </div>
+
+          <!-- Permission 3: Chat Access (House Conversations) -->
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <label class="form-label-bold" for="select-hs-conversation-perm" style="font-size: 12.5px; margin: 0;">3. Chat Access (Conversations):</label>
+            <select id="select-hs-conversation-perm" class="input-styled" style="height: 36px; padding: 4px 10px; cursor: pointer;">
+              <option value="1">All Members</option>
+              <option value="3">Trusted House Members</option>
+              <option value="2">Admins and Leaders</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 7. Danger Zone: Delete House -->
+        <div class="hs-section" id="hs-danger-zone" style="display: flex; flex-direction: column; gap: 10px; padding: 14px; background: rgba(239, 68, 68, 0.08); border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <span style="font-size: 13.5px; font-weight: 700; color: #ef4444;">⚠️ Danger Zone: Delete House</span>
+              <span style="font-size: 11.5px; color: var(--text-muted);">Permanently delete this house and remove all members</span>
+            </div>
+            <button class="btn btn-danger btn-sm" id="btn-hs-delete-house" style="flex-shrink: 0;">
+              <span>🗑️ Delete House</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-secondary" id="btn-dismiss-house-settings">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: HOUSE WAITLIST APPLICANTS          -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-house-waitlist" style="display: none;">
+    <div class="modal-card modal-house-waitlist-card" style="max-width: 560px; width: 92%;">
+      <div class="modal-header">
+        <div class="modal-title-wrap" style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">📋</span>
+          <h3 class="modal-title" id="modal-hw-title" style="margin: 0; font-size: 16px; font-weight: 700;">Waitlist Applicants</h3>
+        </div>
+        <button class="btn-close-modal" id="btn-close-house-waitlist">✕</button>
+      </div>
+
+      <div class="modal-body hw-modal-body" style="padding: 16px 20px; max-height: 70vh; overflow-y: auto;">
+        <div id="hw-applicants-list" style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="text-align: center; padding: 24px; color: var(--text-muted);">Loading waitlist...</div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <span id="hw-count-text" style="font-size: 12px; color: var(--text-muted);">0 applicants</span>
+        <button class="btn btn-secondary" id="btn-dismiss-house-waitlist">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SOCIAL CLUB (HOUSE) MEMBERS LIST -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-club-members" style="display: none;">
+    <div class="modal-card modal-members-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          👥 <span id="cm-members-modal-title">House Members</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-members-modal">✕</button>
+      </div>
+
+      <!-- Rate Limit (HTTP 429) Cooldown Overlay -->
+      <div class="rate-limit-overlay" id="rate-limit-overlay" style="display: none;">
+        <div class="rate-limit-content">
+          <div class="rate-limit-spinner">⏳</div>
+          <div class="rate-limit-title">Please wait a moment...</div>
+          <div class="rate-limit-desc">Rate limit cooldown in progress. Automatic resume in a few seconds.</div>
+        </div>
+      </div>
+
+      <div class="modal-body members-modal-body" id="cm-members-scroll-area">
+        <div class="club-members-stream" id="club-members-stream">
+          <!-- Dynamically populated member cards -->
+        </div>
+        <div class="members-load-more" id="members-load-more" style="display: none;">
+          <button class="btn btn-secondary btn-sm" id="btn-load-more-members">⬇️ Load More Members</button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-close-members">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SOCIAL CLUB INVITE DIALOG & DIRECTORY -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-club-invite-dialog" style="display: none; z-index: 100060;">
+    <div class="modal-card modal-club-invite-card" style="max-width: 540px; width: 95%;">
+      <div class="modal-header">
+        <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>💌</span>
+          <span id="club-invite-modal-title">Invite to House</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-club-invite-modal">✕</button>
+      </div>
+
+      <div class="modal-body club-invite-modal-body" style="padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; max-height: 72vh; overflow-y: auto;">
+        <!-- 1. Copyable House Invite Link Box -->
+        <div class="club-invite-link-card" style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div style="font-size: 12.5px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+              <span>🔗</span>
+              <span>House Invite Link</span>
+            </div>
+            <div id="club-invite-num-badge" class="badge badge-info" style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3);">
+              Active Link
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="text" id="club-invite-link-input" readonly placeholder="Fetching invite link..." style="flex: 1; min-width: 0; padding: 8px 12px; background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px; font-size: 12.5px; color: var(--text-primary); font-family: monospace; outline: none; text-overflow: ellipsis; cursor: pointer;">
+            <button class="btn btn-primary btn-sm" id="btn-club-invite-copy-link" style="white-space: nowrap; height: 35px; padding: 0 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+              <span>📋</span>
+              <span id="club-invite-copy-btn-text">Copy Link</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Tabs: Available vs Pending Invites -->
+        <div class="club-invite-tabs-wrap" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 2px; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <button type="button" class="club-invite-tab-btn active" id="tab-club-invite-available" style="padding: 7px 12px; font-size: 13px; font-weight: 700; border: none; border-bottom: 2px solid var(--accent); background: transparent; color: var(--text-primary); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <span>Available</span>
+              <span class="badge" id="badge-club-invite-avail-count" style="font-size: 11px; padding: 1px 6px; border-radius: 10px; background: var(--surface-3); color: var(--text-muted);">0</span>
+            </button>
+            <button type="button" class="club-invite-tab-btn" id="tab-club-invite-pending" style="padding: 7px 12px; font-size: 13px; font-weight: 600; border: none; border-bottom: 2px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <span>Pending Invites</span>
+              <span class="badge" id="badge-club-invite-pending-count" style="font-size: 11px; padding: 1px 6px; border-radius: 10px; background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);">0</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Search / Filter Bar -->
+        <div style="position: relative; width: 100%;">
+          <input type="text" id="club-invite-search-filter" placeholder="🔍 Search contacts or username..." style="width: 100%; box-sizing: border-box; padding: 8px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; font-size: 12.5px; color: var(--text-primary); outline: none;">
+        </div>
+
+        <!-- 5. User List Container -->
+        <div class="club-invite-users-list" id="club-invite-users-list" style="display: flex; flex-direction: column; gap: 8px; min-height: 160px;">
+          <!-- Dynamically populated rows -->
+        </div>
+      </div>
+
+      <div class="modal-footer" style="padding: 12px 18px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--border);">
+        <button class="btn btn-secondary btn-sm" id="btn-close-club-invite-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: HOUSE INVITATION ACCEPT / DECLINE PROMPT -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-house-invite-prompt" style="display: none; z-index: 100070;">
+    <div class="modal-card modal-house-prompt-card" style="max-width: 440px; width: 92%; text-align: center;">
+      <div class="modal-header" style="justify-content: center; position: relative;">
+        <div class="modal-title" style="font-size: 17px; font-weight: 700;">🏰 House Invitation</div>
+        <button class="btn-close-modal" id="btn-close-house-invite-prompt" style="position: absolute; right: 14px; top: 12px;">✕</button>
+      </div>
+
+      <div class="modal-body" style="padding: 22px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px;">
+        <div class="house-prompt-avatar-wrap" style="position: relative; width: 76px; height: 76px;">
+          <img src="" id="house-prompt-avatar" alt="House Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 20px; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.3);">
+          <div id="house-prompt-avatar-fallback" style="width: 100%; height: 100%; border-radius: 20px; font-size: 34px; display: flex; align-items: center; justify-content: center; background: var(--surface-3); border: 1px solid var(--border);">🏰</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 4px; max-width: 100%;">
+          <h3 id="house-prompt-name" style="margin: 0; font-size: 19px; font-weight: 800; color: var(--text-primary); word-break: break-word;">House Name</h3>
+          <div id="house-prompt-inviter-text" style="font-size: 13px; color: var(--text-muted); line-height: 1.4;">
+            You have been invited to join this House.
+          </div>
+        </div>
+
+        <div id="house-prompt-stats" style="display: flex; align-items: center; justify-content: center; gap: 16px; font-size: 12px; color: var(--text-muted); background: var(--surface-2); padding: 8px 16px; border-radius: 8px; width: 100%; box-sizing: border-box;">
+          <div>👥 <span id="house-prompt-member-count" style="font-weight: 700; color: var(--text-primary);">0</span> members</div>
+          <div>🌐 <span id="house-prompt-policy-text" style="font-weight: 700; color: var(--text-primary);">Open</span></div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="padding: 14px 20px; display: flex; gap: 10px; justify-content: center; border-top: 1px solid var(--border);">
+        <button class="btn btn-secondary" id="btn-house-prompt-decline" style="flex: 1; height: 38px; font-weight: 600; color: #f87171; border-color: rgba(239, 68, 68, 0.3);">
+          ✕ Decline
+        </button>
+        <button class="btn btn-primary" id="btn-house-prompt-accept" style="flex: 1.2; height: 38px; font-weight: 700; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); border-color: #16a34a;">
+          ✓ Accept Invitation
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ROOM DETAILS & SPEAKERS INSPECTOR -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-room-details" style="display: none;">
+    <div class="modal-card modal-room-details-card" style="max-width: 580px; width: 95%;">
+      <div class="modal-header">
+        <div class="modal-title-wrap" style="display: flex; align-items: center; gap: 8px;">
+          <span class="search-live-pulse-dot"></span>
+          <div class="modal-title" id="room-details-title">🎙️ Live Room Overview</div>
+        </div>
+        <button class="btn-close-modal" id="btn-close-room-details-modal">✕</button>
+      </div>
+      <div class="modal-body room-details-body" style="max-height: 75vh; overflow-y: auto; padding: 18px 20px;">
+
+        <!-- Room Header Box -->
+        <div class="room-details-header-box" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span class="search-item-type-badge badge-room">LIVE AUDIO ROOM</span>
+            <span id="room-details-lock-status" style="font-size: 12px; color: var(--text-muted);">🌐 Public Room</span>
+          </div>
+          <h2 id="room-details-topic" style="font-size: 17px; font-weight: 700; margin: 0 0 8px 0; color: var(--text);">Room Topic</h2>
+          <div class="room-details-meta-row" style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--text-muted);">
+            <span id="room-details-speakers-count">🎙️ 0 Speakers</span>
+            <span>•</span>
+            <span id="room-details-listeners-count">👥 0 in Room</span>
+            <span>•</span>
+            <span id="room-details-channel-code">Channel: -</span>
+            <span>•</span>
+            <span id="room-details-channel-id">ID: -</span>
+          </div>
+        </div>
+
+        <!-- Channel Speakers & Members Section -->
+        <div class="pm-section">
+          <div class="pm-section-label" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <span style="font-weight: 700; font-size: 13px; color: var(--text);">🎙️ Channel Speakers & Members</span>
+            <span style="font-size: 11px; color: var(--text-muted);">Click avatar or name to view profile</span>
+          </div>
+          <div id="room-details-users-list" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Dynamically populated users with avatar, name, moderator status, user id, joined AM/PM time and channel duration -->
+          </div>
+        </div>
+
+        <!-- Room URL Section (Down Side) -->
+        <div class="pm-section" style="margin-top: 18px;">
+          <div class="pm-section-label" style="font-weight: 700; font-size: 12px; color: var(--text-muted); margin-bottom: 6px;">🔗 Room URL</div>
+          <div class="room-url-container" style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="room-details-url-input" readonly placeholder="https://www.clubhouse.com/room/..." style="flex: 1; height: 34px; padding: 0 10px; font-size: 12px; border-radius: 6px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.12); color: var(--text);" />
+            <button class="btn btn-secondary btn-sm" id="btn-copy-room-details-url" title="Copy room link">📋 Copy</button>
+            <button class="btn btn-secondary btn-sm" id="btn-open-room-details-url" title="Open room in browser">🌐 Open</button>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn btn-secondary" id="btn-dismiss-room-details">Close</button>
+        <button class="btn btn-primary" id="btn-join-room-from-details" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
+          <span>🎙️ Join Room Channel</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: AUDIO SETTINGS & SPATIAL AUDIO -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-audio-settings" style="display: none;">
+    <div class="modal-card modal-audio-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap" style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">🔊</span>
+          <div class="modal-title">Studio Audio Settings & Equalizer Suite</div>
+          <span class="badge-dock-pro" style="font-size: 10px; padding: 2px 6px; background: linear-gradient(135deg, #10B981, #00D2FF); color: #000; font-weight: 800; border-radius: 4px;">STUDIO DSP</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-audio-modal" onclick="closeAudioSettingsModal()" title="Close audio settings">✕</button>
+      </div>
+      <div class="modal-body audio-modal-body">
+        <!-- TOP 2-COLUMN GRID: INPUT & OUTPUT HARDWARE ROUTING -->
+        <div class="audio-settings-top-grid">
+          <!-- COLUMN 1: MICROPHONE INPUT & GAIN BOOST -->
+          <div class="audio-device-column">
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label for="select-audio-input" style="font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                <span>🎙️</span> Microphone (Input Device):
+              </label>
+              <div class="input-wrapper">
+                <select id="select-audio-input" class="form-select-device"></select>
+              </div>
+            </div>
+
+            <div class="form-group audio-volume-group" style="margin-bottom: 0;">
+              <div class="audio-volume-header">
+                <label for="slider-mic-volume" class="audio-volume-label">🎙️ Mic Volume & Input Boost (Gain):</label>
+                <span class="audio-volume-badge" id="val-mic-volume">100%</span>
+              </div>
+              <div class="volume-slider-container">
+                <input type="range" id="slider-mic-volume" min="0" max="250" step="5" value="100" class="form-range-volume">
+                <div class="volume-slider-ticks">
+                  <span>0% (Muted)</span>
+                  <span class="volume-tick-normal">100% (Normal)</span>
+                  <span class="volume-tick-boost">250% (Boost ⚡)</span>
+                </div>
+              </div>
+              <div class="volume-boost-note">
+                Directly amplifies microphone hardware gain for all listeners (up to 250% boost).
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMN 2: SPEAKER OUTPUT & VOLUME BOOST -->
+          <div class="audio-device-column">
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label for="select-audio-output" style="font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                <span>🎧</span> Speaker / Headphones (Output Device):
+              </label>
+              <div class="input-wrapper">
+                <select id="select-audio-output" class="form-select-device"></select>
+              </div>
+            </div>
+
+            <div class="form-group audio-volume-group" style="margin-bottom: 0;">
+              <div class="audio-volume-header">
+                <label for="slider-audio-volume" class="audio-volume-label">🔊 Room Audio Volume & Output Boost:</label>
+                <span class="audio-volume-badge" id="val-audio-volume">100%</span>
+              </div>
+              <div class="volume-slider-container">
+                <input type="range" id="slider-audio-volume" min="0" max="250" step="5" value="100" class="form-range-volume">
+                <div class="volume-slider-ticks">
+                  <span>0% (Mute)</span>
+                  <span class="volume-tick-normal">100% (Normal)</span>
+                  <span class="volume-tick-boost">250% (Boost ⚡)</span>
+                </div>
+              </div>
+              <div class="volume-boost-note">
+                Controls room playback loudness with up to 250% amplification boost.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MIDDLE ROW: AUDIO ACOUSTIC MODES & DEAFEN -->
+        <div class="audio-settings-options-row">
+          <div class="audio-deafen-box" style="margin: 0; flex: 1.2;">
+            <label class="custom-checkbox-row">
+              <input type="checkbox" id="check-mute-remote-audio">
+              <div class="checkbox-visual"></div>
+              <div class="checkbox-text">
+                <span class="checkbox-title">🔇 Deafen Room Audio <span class="shortcut-tag">Ctrl + X</span></span>
+                <span class="checkbox-sub">Silences incoming audio from stage speakers. Press <kbd>Ctrl</kbd> + <kbd>X</kbd>.</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="spatial-toggle-box" style="margin: 0; flex: 1.2;">
+            <label class="custom-checkbox-row">
+              <input type="checkbox" id="check-spatial-audio">
+              <div class="checkbox-visual"></div>
+              <div class="checkbox-text">
+                <span class="checkbox-title">🌐 3D Spatial Audio</span>
+                <span class="checkbox-sub">Simulates acoustic placement based on stage position.</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="audio-mode-box" style="margin: 0; flex: 1;">
+            <div class="audio-mode-header">
+              <span class="audio-mode-title">🎵 Audio Engine</span>
+              <span class="audio-quality-badge">Music Mode</span>
+            </div>
+            <div class="audio-mode-desc">
+              Studio stereo 48kHz high-fidelity music mode.
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- STUDIO MIC EQUALIZER, REVERB & VOICE MIXER (PREMIUM ⚡)     -->
+        <!-- ============================================================ -->
+        <div class="mic-fx-studio-box" id="mic-fx-studio-box">
+          <div class="mic-fx-header">
+            <div class="mic-fx-title-wrap">
+              <span class="mic-fx-icon">🎛️</span>
+              <div class="mic-fx-title-col">
+                <div class="mic-fx-title">Studio Equalizer & Voice Mixers</div>
+                <div class="mic-fx-subtitle">Hardware-accelerated 8-band EQ, acoustic reverb, stereo echo, and voice pitch DSP for Agora RTC mic</div>
+              </div>
+            </div>
+            <div class="mic-fx-controls-top">
+              <label class="toggle-switch-wrap" title="Enable/Disable Studio Mic Equalizer & Reverb FX">
+                <input type="checkbox" id="check-mic-fx-enable">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="mic-fx-body" id="mic-fx-body-controls">
+            <!-- 1. Presets Selector Row + Low Cut Toggle + Master Gain -->
+            <div class="mic-fx-preset-row">
+              <div class="mic-fx-preset-select-wrap">
+                <label for="select-eq-preset" class="mic-fx-label">🎙️ Vocal EQ Preset:</label>
+                <select id="select-eq-preset" class="form-select-device mic-fx-select">
+                  <option value="flat">Flat / Default (Clean 0 dB)</option>
+                  <option value="radio">Deep Radio & Podcast Voice (+6dB Bass / +3dB Presence)</option>
+                  <option value="warmth">Warm Studio Vocal (+4dB Low-Mid / Smooth)</option>
+                  <option value="clarity">Crisp Vocal Clarity (+5dB Presence / +6dB Air)</option>
+                  <option value="broadcast">Studio Broadcast Punch (+4dB Bass / +4dB Presence / +4dB Air)</option>
+                  <option value="music">Acoustic & Music Mode (Full Range Clarity)</option>
+                  <option value="custom">Custom (User Tuned)</option>
+                </select>
+              </div>
+
+              <!-- Low-Cut 80Hz rumble filter toggle -->
+              <div class="mic-fx-lowcut-wrap">
+                <label class="custom-checkbox-row mic-lowcut-checkbox" title="80Hz High-Pass Filter cuts room rumble, AC hum, and table thumps">
+                  <input type="checkbox" id="check-mic-lowcut" checked>
+                  <div class="checkbox-visual"></div>
+                  <span class="mic-lowcut-label">🔇 80Hz Low-Cut (De-Rumble)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 2. Voice Character & Pitch Modulator -->
+            <div class="mic-character-box">
+              <div class="mic-character-header">
+                <span class="mic-fx-section-title">🎭 Voice Character & Modulator</span>
+                <span class="audio-volume-badge" id="val-voice-character">Clean Studio</span>
+              </div>
+              <div class="voice-character-pills">
+                <button type="button" class="btn-voice-char active" data-character="clean">🎙️ Clean Studio</button>
+                <button type="button" class="btn-voice-char" data-character="radio">📻 Deep Radio</button>
+                <button type="button" class="btn-voice-char" data-character="anime">✨ High Pitch</button>
+                <button type="button" class="btn-voice-char" data-character="robot">🤖 Cyber Robot</button>
+                <button type="button" class="btn-voice-char" data-character="phone">📞 Vintage Phone</button>
+                <button type="button" class="btn-voice-char" data-character="megaphone">📢 Megaphone</button>
+              </div>
+            </div>
+
+            <!-- 3. 8-Band Parametric Equalizer Sliders -->
+            <div class="mic-eq-section-title-row">
+              <span class="mic-fx-section-title">🎚️ 8-Band Parametric Equalizer</span>
+              <button type="button" class="btn-reset-eq" id="btn-reset-eq" title="Reset all 8 bands to 0 dB">↺ Reset Bands</button>
+            </div>
+            <div class="mic-eq-grid eq-grid-8bands">
+              <!-- Band 1: Sub Bass 60Hz -->
+              <div class="eq-band-card">
+                <div class="eq-band-header">
+                  <span class="eq-band-name">Sub</span>
+                  <span class="eq-band-freq">60 Hz</span>
+                </div>
+                <div class="eq-slider-vertical-wrap">
+                  <input type="range" id="slider-eq-band1" class="eq-slider" min="-15" max="15" step="1" value="0">
+                </div>
+                <span class="eq-val-badge" id="val-eq-band1">0 dB</span>
+              </div>
+
+              <!-- Band 2: Bass 120Hz -->
+              <div class="eq-band-card">
+                <div class="eq-band-header">
+                  <span class="eq-band-name">Bass</span>
+                  <span class="eq-band-freq">120 Hz</span>
+                </div>
+                <div class="eq-slider-vertical-wrap">
+                  <input type="range" id="slider-eq-band2" class="eq-slider" min="-15" max="15" step="1" value="0">
+                </div>
+                <span class="eq-val-badge" id="val-eq-band2">0 dB</span>
+              </div>
+
+              <!-- Band 3: Low-Mid 300Hz -->
+              <div class="eq-band-card">
+                <div class="eq-band-header">
+                  <span class="eq-band-name">Body</span>
+                  <span class="eq-band-freq">300 Hz</span>
+                </div>
+                <div class="eq-slider-vertical-wrap">
+                  <input type="range" id="slider-eq-band3" class="eq-slider" min="-12" max="12" step="1" value="0">
+                </div>
+                <span class="eq-val-badge" id="val-eq-band3">0 dB</span>
+              </div>
+
+              <!-- Band 4: Midrange 700Hz -->
+              <div class="eq-band-card">
+                <div class="eq-band-header">
+                  <span class="eq-band-name">Mid</span>
+                  <span class="eq-band-freq">700 Hz</span>
+                </div>
+                <div class="eq-slider-vertical-wrap">
+                  <input type="range" id="slider-eq-band4" class="eq-slider" min="-12" max="12" step="1" value="0">
+                </div>
+                <span class="eq-val-badge" id="val-eq-band4">0 dB</span>
+              </div>
+
+              <!-- Band 5: Warmth 1.8kHz -->
+              <div class="eq-band-card">
+                <div class="eq-band-header">
+                  <span class="eq-band-name">Warmth</span>
+                  <span class="eq-band-freq">1.8 kHz</span>
+                </div>
+                <div class="eq-slider-vertical-wrap">
+                  <input type="range" id="slider-eq-band5" class="eq-slider" min="-12" max="12" step="1" value="0">
+                </div>
+                <span class="eq-val-badge" id="val-eq-band5">0 dB</span>
+              </div>
+
+              <!-- Band 6: Presence 3.5kHz -->
+              <div class="eq-band-card">
+                <div class="eq-band-header">
+                  <span class="eq-band-name">Presence</span>
+                  <span class="eq-band-freq">3.5 kHz</span>
+                </div>
+                <div class="eq-slider-vertical-wrap">
+                  <input type="range" id="slider-eq-band6" class="eq-slider" min="-12" max="12" step="1" value="0">
+                </div>
+                <span class="eq-val-badge" id="val-eq-band6">0 dB</span>
+              </div>
+
+              <!-- Band 7: Crisp Treble 7kHz -->
+              <div class="eq-band-card">
+                <div class="eq-band-header">
+                  <span class="eq-band-name">Crisp</span>
+                  <span class="eq-band-freq">7.0 kHz</span>
+                </div>
+                <div class="eq-slider-vertical-wrap">
+                  <input type="range" id="slider-eq-band7" class="eq-slider" min="-15" max="15" step="1" value="0">
+                </div>
+                <span class="eq-val-badge" id="val-eq-band7">0 dB</span>
+              </div>
+
+              <!-- Band 8: Air 12kHz -->
+              <div class="eq-band-card">
+                <div class="eq-band-header">
+                  <span class="eq-band-name">Air</span>
+                  <span class="eq-band-freq">12.0 kHz</span>
+                </div>
+                <div class="eq-slider-vertical-wrap">
+                  <input type="range" id="slider-eq-band8" class="eq-slider" min="-15" max="15" step="1" value="0">
+                </div>
+                <span class="eq-val-badge" id="val-eq-band8">0 dB</span>
+              </div>
+            </div>
+
+            <!-- 4. Stereo Delay & Echo Mixer -->
+            <div class="mic-delay-box">
+              <div class="mic-delay-header">
+                <span class="mic-fx-section-title">⏱️ Stereo Delay & Echo Studio</span>
+                <span class="audio-volume-badge" id="val-delay-mix">0% (Dry)</span>
+              </div>
+              <div class="mic-delay-sliders-grid">
+                <div class="mic-dyn-col">
+                  <div class="mic-dyn-header">
+                    <span class="mic-dyn-title">Delay Time</span>
+                    <span class="mic-dyn-val" id="val-delay-time">220 ms</span>
+                  </div>
+                  <input type="range" id="slider-delay-time" min="50" max="800" step="10" value="220" class="form-range-volume">
+                  <span class="mic-dyn-desc">Time between vocal echo repeats</span>
+                </div>
+                <div class="mic-dyn-col">
+                  <div class="mic-dyn-header">
+                    <span class="mic-dyn-title">Feedback</span>
+                    <span class="mic-dyn-val" id="val-delay-feedback">35%</span>
+                  </div>
+                  <input type="range" id="slider-delay-feedback" min="0" max="80" step="5" value="35" class="form-range-volume">
+                  <span class="mic-dyn-desc">Number of echo repeats</span>
+                </div>
+                <div class="mic-dyn-col">
+                  <div class="mic-dyn-header">
+                    <span class="mic-dyn-title">Echo Mix</span>
+                    <span class="mic-dyn-val" id="val-delay-wet">0% (Off)</span>
+                  </div>
+                  <input type="range" id="slider-delay-mix" min="0" max="100" step="5" value="0" class="form-range-volume">
+                  <span class="mic-dyn-desc">Dry / Wet stereo echo balance</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Acoustic Reverb Section with 6 Rooms -->
+            <div class="mic-reverb-box">
+              <div class="mic-reverb-header">
+                <span class="mic-fx-section-title">🏛️ Acoustic Reverb Engine</span>
+                <span class="audio-volume-badge" id="val-reverb-mix">0% (Dry)</span>
+              </div>
+              <div class="volume-slider-container">
+                <input type="range" id="slider-reverb-mix" min="0" max="100" step="2" value="0" class="form-range-volume">
+                <div class="volume-slider-ticks">
+                  <span>0% (Dry)</span>
+                  <span>25% (Subtle)</span>
+                  <span>50% (Rich)</span>
+                  <span>100% (Full Wet)</span>
+                </div>
+              </div>
+              <div class="reverb-rooms-row reverb-rooms-row-expanded">
+                <button type="button" class="btn-reverb-room active" data-room="booth">🎙️ Vocal Booth</button>
+                <button type="button" class="btn-reverb-room" data-room="room">🏠 Warm Room</button>
+                <button type="button" class="btn-reverb-room" data-room="stage">🎸 Live Stage</button>
+                <button type="button" class="btn-reverb-room" data-room="hall">🏛️ Concert Hall</button>
+                <button type="button" class="btn-reverb-room" data-room="cathedral">⛪ Cathedral</button>
+                <button type="button" class="btn-reverb-room" data-room="space">🌌 Cosmic Space</button>
+              </div>
+            </div>
+
+            <!-- 6. Dynamics: Compressor, Noise Gate & Makeup Gain -->
+            <div class="mic-dynamics-grid mic-dynamics-grid-3col">
+              <div class="mic-dyn-col">
+                <div class="mic-dyn-header">
+                  <span class="mic-dyn-title">🎙️ Studio Compressor</span>
+                  <span class="mic-dyn-val" id="val-compressor-punch">0% (Off)</span>
+                </div>
+                <input type="range" id="slider-compressor-punch" min="0" max="100" step="5" value="0" class="form-range-volume">
+                <span class="mic-dyn-desc">Smooths vocal peaks & adds radio punch</span>
+              </div>
+
+              <div class="mic-dyn-col">
+                <div class="mic-dyn-header">
+                  <span class="mic-dyn-title">🔇 Noise Gate</span>
+                  <span class="mic-dyn-val" id="val-noise-gate">Off</span>
+                </div>
+                <input type="range" id="slider-noise-gate" min="0" max="100" step="5" value="0" class="form-range-volume">
+                <span class="mic-dyn-desc">Silences background fan and room hiss</span>
+              </div>
+
+              <div class="mic-dyn-col">
+                <div class="mic-dyn-header">
+                  <span class="mic-dyn-title">🔊 Master Makeup Gain</span>
+                  <span class="mic-dyn-val" id="val-makeup-gain">0 dB</span>
+                </div>
+                <input type="range" id="slider-makeup-gain" min="-12" max="12" step="1" value="0" class="form-range-volume">
+                <span class="mic-dyn-desc">Post-EQ master studio loudness</span>
+              </div>
+            </div>
+
+            <!-- 7. Real-Time VU Meter & Headphone Monitor -->
+            <div class="mic-meter-monitor-row">
+              <div class="mic-vu-meter-wrap">
+                <span class="mic-vu-label">VU Level:</span>
+                <div class="mic-vu-track">
+                  <div class="mic-vu-fill" id="mic-vu-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+              <label class="custom-checkbox-row mic-monitor-checkbox" title="Listen to your processed voice in your headphones to test EQ, Delay, and Reverb in real time">
+                <input type="checkbox" id="check-mic-monitor">
+                <div class="checkbox-visual"></div>
+                <span class="mic-monitor-label">🎧 Test Voice (Mic Monitor)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-audio-cancel" onclick="closeAudioSettingsModal()">Cancel</button>
+        <button class="btn btn-primary" id="btn-audio-save">💾 Save Audio Preferences</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: PROFILE STUDIO (FULL PROFILE & CUSTOMIZATION) -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-profile-studio" style="display: none;">
+    <div class="modal-card modal-studio-card">
+      <div class="modal-header">
+        <div class="modal-title">👤 Your Profile</div>
+        <button class="btn-close-modal" id="btn-close-profile-studio">✕</button>
+      </div>
+      <div class="modal-body studio-modal-body">
+
+        <!-- Top Profile Row: Avatar & Quick Info -->
+        <div class="studio-profile-header">
+          <div class="studio-avatar-wrap" id="studio-avatar-wrap" title="Click to view all photos" style="cursor: pointer;">
+            <img src="" alt="Avatar" id="studio-avatar-img" class="studio-avatar" style="display: none;">
+            <div class="studio-avatar-fallback" id="studio-avatar-fallback">👤</div>
+          </div>
+          <div class="studio-quick-meta">
+            <div class="studio-meta-name-row">
+              <span class="studio-main-display-name" id="studio-main-name">Name</span>
+              <span class="badge-yellow-plus" id="studio-paid-plus" title="Clubhouse Plus Member" style="display: none;">+</span>
+              <span class="badge badge-success">✓ Verified</span>
+              <span class="badge" id="badge-studio-privacy" style="display: none; font-size: 11px;">🌐 Public</span>
+              <span class="badge" id="badge-studio-convos" style="display: none; font-size: 11px;">💬 Chats Visible</span>
+            </div>
+            <div class="studio-meta-sub-row">
+              <span class="studio-handle-tag" id="studio-main-username">@username</span>
+              <span class="meta-dot">•</span>
+              <span class="user-id-tag" id="studio-main-userid">ID: 000000</span>
+              <button class="btn btn-secondary btn-xs btn-copy-profile-link" id="btn-studio-copy-link" title="Copy your profile link">
+                <span>🔗 Copy Link</span>
+              </button>
+            </div>
+            <div class="studio-header-btn-row">
+              <button class="btn btn-secondary btn-xs" id="btn-studio-open-followers">👥 <span id="studio-followers-btn-count">0</span> Followers</button>
+              <button class="btn btn-secondary btn-xs" id="btn-studio-open-following">👥 <span id="studio-following-btn-count">0</span> Following</button>
+              <button class="btn btn-secondary btn-xs" id="btn-studio-open-friends" title="View friends (mutual follows)">🤝 Friends</button>
+              <button class="btn btn-secondary btn-xs" id="btn-studio-toggle-private-profile" title="Toggle Private Profile (Enable/Disable Follower Requests)">🔒 <span id="studio-private-profile-text">Public Profile</span></button>
+              <button class="btn btn-secondary btn-xs" id="btn-studio-toggle-private-convos" title="Hide/Show Recently Chatting in Profile">💬 <span id="studio-private-convos-text">Show Recent Chats</span></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Blocked Users Row -->
+        <div class="studio-viewers-center-banner" id="studio-viewers-banner">
+          <button class="btn-studio-blocked-badge" id="btn-studio-open-blocklist" title="View & manage blocked users">
+            <span class="blocked-badge-icon">🚫</span>
+            <span class="blocked-badge-text">Blocked Users</span>
+            <span class="blocked-badge-arrow">›</span>
+          </button>
+        </div>
+
+        <!-- Editable Profile Fields Cards -->
+        <div class="studio-fields-grid">
+
+          <!-- Full Name Field -->
+          <div class="studio-field-card">
+            <div class="studio-field-header">
+              <span class="studio-field-label">Full Name</span>
+              <button class="btn btn-secondary btn-xs" id="btn-studio-edit-name">✏️ Edit</button>
+              <span class="badge badge-muted btn-xs" id="badge-studio-name-locked" style="display: none; font-size: 10px;">🔒 Locked</span>
+            </div>
+            <div class="studio-field-value" id="studio-val-name">Loading...</div>
+          </div>
+
+          <!-- Email Address Field (near name box) -->
+          <div class="studio-field-card">
+            <div class="studio-field-header">
+              <span class="studio-field-label">Email Address</span>
+              <button class="btn btn-secondary btn-xs" id="btn-studio-edit-email">✏️ Edit</button>
+            </div>
+            <div class="studio-field-value" id="studio-val-email">None set</div>
+          </div>
+
+          <!-- Display Name / Alias Field -->
+          <div class="studio-field-card">
+            <div class="studio-field-header">
+              <span class="studio-field-label">Display Name (Alias)</span>
+              <div class="studio-field-actions" id="studio-alias-actions">
+                <button class="btn btn-primary btn-xs" id="btn-studio-add-alias" style="display: none;">➕ Add Display Name</button>
+                <button class="btn btn-secondary btn-xs" id="btn-studio-edit-alias" style="display: none;">✏️ Edit</button>
+                <button class="btn btn-danger btn-xs" id="btn-studio-remove-alias" style="display: none;">🗑️ Remove</button>
+              </div>
+              <span class="badge badge-muted btn-xs" id="badge-studio-alias-locked" style="display: none; font-size: 10px;">🔒 Locked</span>
+            </div>
+            <div class="studio-field-value" id="studio-val-alias">None set</div>
+          </div>
+
+          <!-- Username / Handle Field -->
+          <div class="studio-field-card">
+            <div class="studio-field-header">
+              <span class="studio-field-label">Username (@handle)</span>
+              <button class="btn btn-secondary btn-xs" id="btn-studio-edit-username">✏️ Edit</button>
+              <span class="badge badge-muted btn-xs" id="badge-studio-username-locked" style="display: none; font-size: 10px;">🔒 Locked</span>
+            </div>
+            <div class="studio-field-value" id="studio-val-username">@username</div>
+          </div>
+
+          <!-- Phone Number Field -->
+          <div class="studio-field-card">
+            <div class="studio-field-header">
+              <span class="studio-field-label">Phone Number</span>
+              <button class="btn btn-secondary btn-xs" id="btn-studio-change-phone" title="Change your registered phone number">📱 Change Number</button>
+            </div>
+            <div class="studio-field-value" id="studio-val-phone">None set</div>
+          </div>
+
+          <!-- Account Settings & Privacy Status Card -->
+          <div class="studio-field-card">
+            <div class="studio-field-header">
+              <span class="studio-field-label">Account & Privacy Status</span>
+            </div>
+            <div class="studio-privacy-pills" style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+              <span class="badge badge-muted" id="pill-studio-protected" style="font-size: 10px;">🔒 Private Profile: Off</span>
+              <span class="badge badge-muted" id="pill-studio-private-convos" style="font-size: 10px;">💬 Recent Chats: Visible</span>
+              <span class="badge badge-muted" id="pill-studio-nsfw" style="font-size: 10px;">🔞 NSFW: Off</span>
+              <span class="badge badge-muted" id="pill-studio-highlights" style="font-size: 10px;">✨ Highlights: Active</span>
+            </div>
+          </div>
+
+          <!-- Bio Field -->
+          <div class="studio-field-card studio-field-full">
+            <div class="studio-field-header">
+              <span class="studio-field-label">Biography</span>
+              <button class="btn btn-secondary btn-xs" id="btn-studio-edit-bio">✏️ Edit Bio</button>
+            </div>
+            <div class="studio-field-value studio-bio-value" id="studio-val-bio">No bio set.</div>
+          </div>
+
+          <!-- Time of Created / Member Since Card -->
+          <div class="studio-field-card">
+            <div class="studio-field-header">
+              <span class="studio-field-label">📅 Member Since</span>
+            </div>
+            <div class="pm-meta-desc" id="studio-created-date">-</div>
+          </div>
+
+          <!-- Nominated By Card -->
+          <div class="studio-field-card">
+            <div class="studio-field-header">
+              <span class="studio-field-label">🤝 Nominated By</span>
+            </div>
+            <div class="pm-inviter-row" id="studio-inviter-row" style="display: none; margin-top: 2px;">
+              <img src="" class="pm-inviter-avatar" id="studio-inviter-avatar" style="display: none;">
+              <div class="pm-inviter-fallback" id="studio-inviter-fallback">👤</div>
+              <div class="pm-inviter-text">
+                <span class="pm-inviter-name" id="studio-inviter-name">-</span>
+                <span class="pm-inviter-handle" id="studio-inviter-handle"></span>
+              </div>
+            </div>
+            <div class="pm-meta-desc" id="studio-inviter-none" style="display: none; color: var(--text-muted); font-size: 12.5px; margin-top: 2px;">Joined Clubhouse directly</div>
+          </div>
+
+        </div>
+
+        <!-- Houses / Social Clubs Section (Bottom of Profile) -->
+        <div class="studio-houses-section" id="studio-houses-section">
+          <div class="studio-history-header" style="display: flex; align-items: center; justify-content: space-between;">
+            <div class="studio-history-title-group">
+              <span class="studio-section-title">🏰 Houses</span>
+              <span class="studio-history-count" id="studio-houses-count">0 houses</span>
+            </div>
+            <button class="btn btn-primary btn-xs" id="btn-studio-create-house" title="Create a new Clubhouse House">
+              <span>➕ Create House</span>
+            </button>
+          </div>
+          <div class="studio-houses-grid" id="studio-houses-grid">
+            <div class="studio-loading-state">Loading houses...</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-dismiss-profile-studio">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: CREATE HOUSE (SOCIAL CLUB)         -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-create-house" style="display: none;">
+    <div class="modal-card modal-create-house-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap" style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">🏰</span>
+          <h3 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 700;">Create a House</h3>
+        </div>
+        <button class="btn-close-modal" id="btn-close-create-house">✕</button>
+      </div>
+
+      <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label-bold" for="input-create-house-name">House Name:</label>
+          <input type="text" id="input-create-house-name" class="input-styled" placeholder="Enter house name (e.g. Chill Gang 🤙🏻)" maxlength="60" autocomplete="off">
+        </div>
+
+        <div class="create-toggle-item" style="padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div class="create-toggle-info" style="display: flex; flex-direction: column; gap: 3px;">
+            <span class="create-toggle-title" style="font-size: 13.5px; font-weight: 600; color: var(--text-primary);">Add followers to this house</span>
+            <span class="create-toggle-sub" style="font-size: 11.5px; color: var(--text-muted);">(once per day limit) Automatically invite your followers to this new house</span>
+          </div>
+          <label class="switch" style="margin-bottom: 0; flex-shrink: 0;">
+            <input type="checkbox" id="check-create-house-add-followers" checked>
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div id="create-house-status-box" style="display: none; padding: 10px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 500; text-align: center;">
+          <span id="create-house-status-text">Creating house...</span>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-secondary" id="btn-cancel-create-house">Cancel</button>
+        <button class="btn btn-primary" id="btn-submit-create-house">
+          <span>🏰 Create House</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SOCIAL GRAPH (FOLLOWERS & FOLLOWING) -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-social-graph" style="display: none;">
+    <div class="modal-card modal-social-card">
+      <div class="modal-header">
+        <div class="modal-title" id="social-graph-title">👥 Social Graph</div>
+        <button class="btn-close-modal" id="btn-close-social-graph">✕</button>
+      </div>
+      <div class="social-tabs-bar">
+        <button class="social-tab-btn active" id="tab-followers" data-type="followers">Followers (<span id="sg-tab-followers-count">0</span>)</button>
+        <button class="social-tab-btn" id="tab-following" data-type="following">Following (<span id="sg-tab-following-count">0</span>)</button>
+        <button class="social-tab-btn" id="tab-friends" data-type="cofollows">Friends (<span id="sg-tab-friends-count">0</span>)</button>
+      </div>
+      <div class="social-search-bar">
+        <input type="text" id="social-graph-search" placeholder="Search members by name or @username..." class="social-search-input" />
+      </div>
+      <div class="modal-body social-graph-body" id="social-graph-list">
+        <div class="social-graph-loading">Loading members...</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-dismiss-social-graph">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: PING SUGGESTED SPEAKERS & FOLLOWERS -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-ping-speakers" style="display: none;">
+    <div class="modal-card modal-ping-card" style="max-width: 540px; width: 95%;">
+      <div class="modal-header">
+        <div class="modal-title-wrap" style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 18px;">🔔</span>
+          <div class="modal-title" id="ping-speakers-title">Ping People to Channel</div>
+        </div>
+        <button class="btn-close-modal" id="btn-close-ping-modal">✕</button>
+      </div>
+
+      <!-- Action & Filter Bar -->
+      <div class="ping-action-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--card-border); gap: 10px; flex-wrap: wrap;">
+        <div class="ping-counts-info" style="font-size: 13px; font-weight: 600; color: var(--text-muted);">
+          <span id="ping-total-count" style="color: var(--text); font-weight: 700;">0</span> suggested • <span id="ping-online-count" style="color: #22c55e; font-weight: 700;">0</span> online now
+        </div>
+        <button class="btn btn-primary btn-sm" id="btn-ping-all-online" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; background: linear-gradient(135deg, #10b981, #059669); border: none;">
+          <span>⚡ Ping All Online Users</span>
+          <span class="badge" id="ping-all-online-badge" style="background: rgba(0,0,0,0.3); padding: 2px 7px; border-radius: 10px; font-size: 11px;">0</span>
+        </button>
+      </div>
+
+      <!-- Search Input -->
+      <div class="ping-search-bar" style="padding: 10px 18px 6px 18px;">
+        <input type="text" id="ping-search-input" placeholder="Search suggested users by name or @username..." class="social-search-input" />
+      </div>
+
+      <!-- Rate Limit Warning Countdown Banner (When 429 occurs) -->
+      <div id="ping-rate-limit-banner" style="display: none; margin: 8px 18px; padding: 10px 14px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; border-radius: 8px; color: #fbbf24; font-size: 12px; align-items: center; gap: 10px;">
+        <span style="font-size: 18px;">⏳</span>
+        <div style="flex: 1;">
+          <div style="font-weight: 700;" id="ping-rate-limit-title">Rate limit reached (429)</div>
+          <div id="ping-rate-limit-desc" style="font-size: 11px; opacity: 0.9;">Pausing for 60 seconds before continuing with remaining users...</div>
+        </div>
+        <div id="ping-rate-limit-timer" style="font-size: 17px; font-weight: 800; font-family: monospace; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px;">60s</div>
+      </div>
+
+      <!-- Progress bar during Ping All Online Users -->
+      <div id="ping-progress-container" style="display: none; padding: 0 18px 8px 18px;">
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 4px; color: var(--text-muted);">
+          <span id="ping-progress-label">Pinging online users...</span>
+          <span id="ping-progress-count" style="font-weight: 700; color: #34d399;">0 / 0</span>
+        </div>
+        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+          <div id="ping-progress-bar" style="width: 0%; height: 100%; background: #10b981; transition: width 0.3s ease;"></div>
+        </div>
+      </div>
+
+      <!-- User List Body -->
+      <div class="modal-body ping-modal-body" id="ping-speakers-list" style="max-height: 380px; overflow-y: auto; padding: 10px 18px;">
+        <div style="text-align: center; padding: 30px; color: var(--text-muted); font-size: 13px;">
+          ⏳ Loading suggested people...
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <span id="ping-status-note" style="font-size: 11.5px; color: var(--text-muted);">Invite people to join this channel</span>
+        <button class="btn btn-secondary" id="btn-dismiss-ping-modal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: INTERACTIVE PHOTO CROPPER -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-photo-cropper" style="display: none;">
+    <div class="modal-card modal-cropper-card">
+      <div class="modal-header">
+        <div class="modal-title">✂️ Interactive Photo Cropper</div>
+        <button class="btn-close-modal" id="btn-close-photo-cropper">✕</button>
+      </div>
+      <div class="modal-body cropper-modal-body">
+        <input type="file" id="cropper-file-input" accept="image/*" style="display: none;">
+
+        <div class="cropper-select-area" id="cropper-select-area">
+          <div class="cropper-drop-icon">🖼️</div>
+          <div class="cropper-drop-text">Drag and drop a photo here, or browse files</div>
+          <button class="btn btn-primary" id="btn-cropper-browse">📁 Choose Image</button>
+        </div>
+
+        <div class="cropper-workspace" id="cropper-workspace" style="display: none;">
+          <div class="cropper-canvas-container">
+            <canvas id="cropper-canvas" width="460" height="460"></canvas>
+            <div class="cropper-guide-hint">Drag image to position • Scroll mouse wheel to zoom</div>
+          </div>
+          <div class="cropper-controls-row">
+            <div class="cropper-zoom-group">
+              <span>🔍 Zoom</span>
+              <input type="range" id="cropper-zoom-slider" min="1" max="4" step="0.02" value="1" class="cropper-slider">
+            </div>
+            <div class="cropper-tools-group">
+              <button class="btn btn-secondary btn-xs" id="btn-cropper-rotate">⟲ Rotate</button>
+              <button class="btn btn-secondary btn-xs" id="btn-cropper-reset">↺ Reset</button>
+              <button class="btn btn-secondary btn-xs" id="btn-cropper-change-file">📁 Other Image</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-cropper">Cancel</button>
+        <button class="btn btn-primary" id="btn-apply-crop" disabled>✂️ Crop & Upload Profile Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: BIO EDIT DIALOG -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-bio-edit" style="display: none;">
+    <div class="modal-card modal-card-sm" style="max-width: 500px;">
+      <div class="modal-header">
+        <div class="modal-title">✏️ Edit Biography</div>
+        <button class="btn-close-modal" id="btn-close-bio-edit">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 16px 20px;">
+        <textarea id="bio-edit-textarea" class="bio-edit-textarea" rows="7" placeholder="Write your clubhouse bio..."></textarea>
+        <div class="bio-char-count-row">
+          <span id="bio-char-count">0 / 2500 characters</span>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 12px 20px;">
+        <button class="btn btn-secondary btn-sm" id="btn-cancel-bio-edit">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-save-bio-edit">💾 Update Bio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: NOTIFICATIONS & ACTIVITIES -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-notifications" style="display: none;">
+    <div class="modal-card modal-notifications-card">
+      <div class="modal-header">
+        <div class="modal-title-group" style="display: flex; align-items: center; gap: 10px;">
+          <div class="modal-title">🔔 Notifications & Activities</div>
+        </div>
+        <div class="notif-header-actions">
+          <button class="btn btn-secondary btn-xs" id="btn-refresh-notifications" title="Refresh activities">🔄 Refresh</button>
+          <button class="btn-close-modal" id="btn-close-notifications">✕</button>
+        </div>
+      </div>
+      <div class="modal-body notif-modal-body" id="notif-list-container">
+        <div class="notif-loading-state" style="text-align: center; padding: 36px; color: var(--text-secondary);">Loading activities...</div>
+      </div>
+      <div class="notif-load-older-wrap" id="notif-load-older-wrap" style="display: none; padding: 8px 16px; border-top: 1px solid var(--border-color); text-align: center;">
+        <button class="btn btn-secondary btn-sm" id="btn-load-more-activities" style="width: 100%;">
+          <span>📜 Load older activities</span>
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-dismiss-notifications">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: PINGED CHANNEL INFO & JOIN DIALOG -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-ping-stage-info" style="display: none;">
+    <div class="modal-card modal-ping-info-card" style="max-width: 520px; width: 92%;">
+      <div class="modal-header">
+        <div class="modal-title-group" style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 1.25rem;">🎙️</span>
+          <div class="modal-title">Pinged Channel Info</div>
+          <span class="badge badge-accent" id="ping-info-live-badge">🟢 LIVE</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-ping-info">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 18px 22px; display: flex; flex-direction: column; gap: 16px;">
+        <!-- Inviter Profile Row -->
+        <div class="ping-info-inviter-box" style="display: flex; align-items: center; gap: 14px; padding: 12px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px;">
+          <div class="ping-info-avatar-col" style="position: relative;">
+            <img src="" id="ping-info-inviter-photo" class="ping-info-avatar" alt="Inviter" style="width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-color);">
+            <div id="ping-info-inviter-fallback" class="ping-info-avatar-fallback" style="width: 52px; height: 52px; border-radius: 50%; background: var(--bg-surface-elevated); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; border: 2px solid var(--accent-color); color: var(--text-primary); display: none;">👤</div>
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-color); font-weight: 700; margin-bottom: 2px;">Pinged By</div>
+            <div id="ping-info-inviter-name" style="font-size: 1rem; font-weight: 700; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Member</div>
+            <div id="ping-info-inviter-sub" style="font-size: 0.8rem; color: var(--text-muted);">Pinged you into this room</div>
+          </div>
+        </div>
+
+        <!-- Channel Info Box -->
+        <div class="ping-info-room-box" style="padding: 16px; background: rgba(56, 189, 248, 0.04); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 12px; display: flex; flex-direction: column; gap: 8px;">
+          <div id="ping-info-club-name" style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">CLUB CHANNEL</div>
+          <div id="ping-info-room-topic" style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); line-height: 1.35;">Test 🚀</div>
+          <div id="ping-info-listeners-count" style="font-size: 0.82rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+            <span>👥 1 here now</span>
+          </div>
+          <div class="ping-info-hash-row" style="margin-top: 4px; padding: 8px 10px; background: rgba(0,0,0,0.3); border-radius: 8px; font-family: monospace; font-size: 0.72rem; color: var(--text-muted); word-break: break-all;">
+            <span style="color: var(--text-secondary); font-weight: 600;">Channel / Invite:</span> <span id="ping-info-channel-code">xq4vq6E9</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding: 14px 20px;">
+        <button class="btn btn-secondary" id="btn-ping-info-copy-link" style="display: inline-flex; align-items: center; gap: 6px;">
+          <span>📋 Copy Link</span>
+        </button>
+        <button class="btn btn-primary" id="btn-ping-info-join-now" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-weight: 700;">
+          <span>🚀 Join Channel Now</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: GIPHY GIF STUDIO & REACTIONS (EXPANDED STUDIO) -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-giphy-studio" style="display: none;">
+    <div class="modal-card modal-giphy-card" style="max-width: 1260px; width: 96%; height: 92vh; max-height: 94vh; display: flex; flex-direction: column;">
+      
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="modal-title-group" style="display: flex; align-items: center; gap: 10px;">
+          <div class="modal-title">🎬 Powerdeck Giphy Reaction</div>
+          <span class="badge badge-highlight" id="giphy-loop-badge" style="display: none;">🔁 Loop Active (<span id="giphy-loop-badge-interval">20</span>s)</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-giphy-studio">✕</button>
+      </div>
+
+      <!-- UPLOADING VIDEO / MEDIA ROUNDED LOADING ANIMATION OVERLAY -->
+      <div class="giphy-upload-overlay" id="giphy-upload-overlay" style="display: none;">
+        <div class="giphy-upload-loading-card">
+          <div class="giphy-upload-rounded-spinner-wrap">
+            <div class="giphy-upload-spinner-ring outer-ring"></div>
+            <div class="giphy-upload-spinner-ring inner-ring"></div>
+            <div class="giphy-upload-spinner-glow"></div>
+            <div class="giphy-upload-spinner-center">
+              <span class="giphy-upload-center-icon" id="giphy-upload-center-icon">🎬</span>
+            </div>
+          </div>
+          <div class="giphy-upload-loading-info">
+            <h4 class="giphy-upload-loading-title" id="giphy-upload-loading-title">Uploading Video Reaction...</h4>
+            <div class="giphy-upload-filename-pill" id="giphy-upload-filename-pill">video.mp4</div>
+            <p class="giphy-upload-loading-desc" id="giphy-upload-loading-desc">Processing & uploading video to Giphy reaction stream... Please wait</p>
+          </div>
+          <div class="giphy-upload-progress-track">
+            <div class="giphy-upload-progress-bar-rounded" id="giphy-upload-progress-bar"></div>
+          </div>
+          <div class="giphy-upload-status-hint">
+            <span class="giphy-upload-status-dot"></span>
+            <span id="giphy-upload-status-text">Saving video to reaction collection...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Active GIF Preview Bar (Shows running GIF & countdown progress) -->
+      <div class="giphy-active-bar" id="giphy-active-bar" style="display: none;">
+        <div class="giphy-active-left">
+          <div class="giphy-active-avatar-preview">
+            <img id="giphy-active-thumb" src="" alt="Active GIF" />
+            <video id="giphy-active-video" src="" autoplay loop muted playsinline style="display: none;"></video>
+          </div>
+          <div class="giphy-active-meta">
+            <div class="giphy-active-title" id="giphy-active-title">Reaction Previewing on Profile Display Picture</div>
+            <div class="giphy-active-timer-text" id="giphy-active-timer-text">⏱️ 20 seconds remaining</div>
+            <div class="giphy-timer-bar-wrap">
+              <div class="giphy-timer-bar-fill" id="giphy-timer-bar-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="giphy-active-right">
+          <button class="btn btn-danger btn-xs" id="btn-giphy-stop-active">⏹️ Stop Reaction</button>
+        </div>
+      </div>
+
+      <!-- Controls & Navigation Toolbar -->
+      <div class="giphy-toolbar">
+        <div class="giphy-toolbar-top">
+          <!-- All-in-One Studio Info & Status -->
+          <div class="giphy-toolbar-left" style="display: flex; align-items: center; gap: 10px;">
+            <span class="badge badge-primary" style="font-size: 12px; font-weight: 700; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px;">
+              <span>👁️ All-in-One Studio</span>
+            </span>
+            <span class="giphy-stat-pill" style="font-size: 12px; color: var(--text-muted);">
+              ⭐ Selected: <strong id="giphy-selected-count" style="color: #10b981;">0</strong> &nbsp;|&nbsp; 📁 Uploaded: <strong id="giphy-uploaded-count" style="color: #3b82f6;">0</strong>
+            </span>
+          </div>
+
+          <!-- Time Seconds Scrollable / Swipeable Interval Picker & Actions -->
+          <div class="giphy-toolbar-controls">
+            <!-- Scrollable / Swipeable Seconds Pill Picker (10s, 20s, etc.) -->
+            <div class="giphy-interval-control-group">
+              <span class="giphy-interval-label">⏱️ Time: <strong id="giphy-interval-display">20s</strong></span>
+              <div class="giphy-interval-scroll-container" id="giphy-interval-pills" title="Scroll or swipe to change loop seconds (10s, 20s...)">
+                <button class="giphy-interval-pill" data-sec="5">5s</button>
+                <button class="giphy-interval-pill" data-sec="10">10s</button>
+                <button class="giphy-interval-pill" data-sec="15">15s</button>
+                <button class="giphy-interval-pill active" data-sec="20">20s</button>
+                <button class="giphy-interval-pill" data-sec="25">25s</button>
+                <button class="giphy-interval-pill" data-sec="30">30s</button>
+                <button class="giphy-interval-pill" data-sec="45">45s</button>
+                <button class="giphy-interval-pill" data-sec="60">60s</button>
+              </div>
+            </div>
+
+            <!-- Start / Stop Loop & Upload Actions -->
+            <div class="giphy-action-btns">
+              <button class="btn btn-highlight btn-xs" id="btn-giphy-loop-toggle" title="Loop selected GIFs or current trending">
+                🔁 Start Loop (<span id="btn-loop-count-text">0</span>)
+              </button>
+              <button class="btn btn-secondary btn-xs" id="btn-giphy-upload" title="Upload GIF or video from computer">
+                📤 Upload
+              </button>
+              <input type="file" id="giphy-file-upload-input" accept=".gif,.mp4,.webm,.mov,.png,.jpg,.jpeg" style="display: none;" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Body Container: Single Page with Separated Previews -->
+      <div class="modal-body giphy-modal-body" id="giphy-grid-container">
+        <div class="giphy-all-sections-container">
+          
+          <!-- SECTION 1: ⭐ SELECTED LOOP QUEUE (SEPARATED PREVIEW) -->
+          <div class="giphy-section-panel giphy-section-selected" id="section-giphy-selected">
+            <div class="giphy-section-header">
+              <div class="giphy-section-title-wrap">
+                <span class="giphy-section-icon">⭐</span>
+                <h3 class="giphy-section-title">Selected Loop Sequence</h3>
+                <span class="badge badge-highlight" id="giphy-shelf-count-badge">0 GIFs Selected</span>
+              </div>
+              <div class="giphy-section-actions">
+                <button class="btn btn-xs btn-shelf-clear" id="btn-clear-selected-shelf" title="Clear all selected">🗑️ Clear All Selected</button>
+              </div>
+            </div>
+            <div class="giphy-selected-shelf-list" id="giphy-selected-shelf-list">
+              <!-- Horizontal sequence preview of selected GIFs -->
+            </div>
+            <div class="giphy-empty-hint" id="giphy-selected-empty" style="display: block;">
+              <span>💡 No GIFs selected yet. Click the <strong>✓</strong> circle on any trending or uploaded GIF below to add it to your loop sequence.</span>
+            </div>
+          </div>
+
+          <!-- SECTION 2: 📁 MY UPLOADED COLLECTION (SEPARATED PREVIEW) -->
+          <div class="giphy-section-panel giphy-section-uploaded" id="section-giphy-uploaded">
+            <div class="giphy-section-header">
+              <div class="giphy-section-title-wrap">
+                <span class="giphy-section-icon">📁</span>
+                <h3 class="giphy-section-title">My Uploaded GIFs & Videos</h3>
+                <span class="badge badge-primary" id="giphy-uploaded-count-badge">0 Uploaded</span>
+              </div>
+              <div class="giphy-section-actions">
+                <button class="btn btn-secondary btn-xs" id="btn-section-upload">📤 Upload GIF / Video</button>
+              </div>
+            </div>
+            <div class="giphy-uploaded-scroll-box" id="giphy-uploaded-scroll-box">
+              <div class="giphy-grid giphy-grid-uploaded" id="giphy-uploaded-grid">
+                <!-- Uploaded GIF / video cards -->
+              </div>
+              <div class="giphy-empty-hint" id="giphy-uploaded-empty" style="display: none;">
+                <span>No uploaded files yet. Click <strong>📤 Upload</strong> to save videos or GIFs directly to Giphy!</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: 🔥 TRENDING & SEARCH RESULTS (SMALLER COMPACT BOX) -->
+          <div class="giphy-section-panel giphy-section-trending" id="section-giphy-trending">
+            <div class="giphy-section-header">
+              <div class="giphy-section-title-wrap">
+                <span class="giphy-section-icon">🔥</span>
+                <h3 class="giphy-section-title" id="giphy-trending-section-title">Trending GIFs</h3>
+                <span class="badge badge-muted" id="giphy-trending-count-badge">36 GIFs</span>
+              </div>
+              <div class="giphy-section-actions">
+                <button class="btn btn-secondary btn-xs" id="btn-refresh-trending" title="Reload trending GIFs">🔄 Reload Trending</button>
+              </div>
+            </div>
+
+            <!-- Search Box placed directly on top of the Trending box -->
+            <div class="giphy-search-wrap giphy-search-trending-top">
+              <span class="giphy-search-icon">🔍</span>
+              <input type="text" id="giphy-search-input" placeholder="Search Giphy reactions (e.g. applause, funny, dance, thumbs up)..." />
+              <button class="btn-clear-giphy-search" id="btn-clear-giphy-search" style="display: none;">✕</button>
+              <button class="btn btn-primary btn-xs" id="btn-giphy-search">Search Giphy</button>
+            </div>
+
+            <!-- Smaller Compact Trending Grid Scroll Container -->
+            <div class="giphy-trending-scroll-box" id="giphy-trending-scroll-box">
+              <div class="giphy-grid giphy-grid-trending" id="giphy-grid">
+                <!-- Trending / search GIF tiles -->
+              </div>
+              <div class="giphy-loading-state" id="giphy-loading" style="display: none; text-align: center; padding: 24px; color: var(--text-muted);">
+                <span>⏳ Loading GIFs from Giphy...</span>
+              </div>
+              <div class="giphy-empty-state" id="giphy-empty" style="display: none; text-align: center; padding: 24px; color: var(--text-muted);">
+                <span>No GIFs found. Try another search or reload trending!</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="giphy-hint-text" style="font-size: 11.5px; color: var(--text-muted);">
+          💡 Tip: Click the <strong>✓</strong> circle on any GIF to select multiple for loop. Swipe or scroll seconds (10s, 20s...) to change interval. Click any card to react immediately.
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btn-dismiss-giphy-studio">Close</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: LINK ACTION CONFIRMATION DIALOG     -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-link-action-dialog" style="display: none; z-index: 100005;">
+    <div class="modal-card modal-card-sm" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>🌐</span> <span>Link Action</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-link-action">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+        <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">Choose an action for this link:</p>
+        <div id="link-action-url-preview" style="font-family: 'Cascadia Mono', Consolas, monospace; font-size: 11px; color: var(--primary, #38bdf8); background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 10px 12px; word-break: break-all; max-height: 90px; overflow-y: auto; user-select: text !important;">
+          https://...
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 12px 20px; display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn btn-secondary btn-sm" id="btn-link-action-copy">📋 Copy Link</button>
+        <button class="btn btn-primary btn-sm" id="btn-link-action-open">🚀 Open in Browser</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: CUSTOM INPUT PROMPT DIALOG (TOPMOST) -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-prompt-dialog" style="display: none;">
+    <div class="modal-card modal-card-sm" style="max-width: 420px;">
+      <div class="modal-header">
+        <div class="modal-title" id="prompt-dialog-title">Input</div>
+        <button class="btn-close-modal" id="btn-close-prompt-dialog">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 16px 20px;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label id="prompt-dialog-label" for="prompt-dialog-input" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary);">Enter text:</label>
+          <input type="text" id="prompt-dialog-input" style="padding: 10px 14px; width: 100%; box-sizing: border-box;" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 12px 20px;">
+        <button class="btn btn-secondary btn-sm" id="btn-cancel-prompt-dialog">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-confirm-prompt-dialog">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: BLOCKED USERS LIST                  -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-blocked-users" style="display: none;">
+    <div class="modal-card modal-blocked-card">
+      <div class="modal-header">
+        <div class="modal-title">🚫 Blocked Users</div>
+        <button class="btn-close-modal" id="btn-close-blocked-modal">✕</button>
+      </div>
+      <div class="modal-sub-banner">
+        <span>Users you have blocked cannot enter rooms you moderate or interact with you.</span>
+      </div>
+      <div class="blocked-modal-body" id="blocked-users-list">
+        <div class="blocked-loading-state">Loading blocked users...</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-dismiss-blocked-modal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MODERATOR ACTION HISTORY            -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-moderator-history" style="display: none;">
+    <div class="modal-card modal-mod-history-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap" style="display: flex; align-items: center; gap: 8px;">
+          <span class="modal-title-icon" style="font-size: 20px;">📝</span>
+          <h3 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 700;">Moderator Action History</h3>
+          <span class="badge badge-primary" id="mod-history-channel-badge">Live Room</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-mod-history">✕</button>
+      </div>
+      <div class="modal-sub-banner">
+        <span>Real-time log of moderator invitations, speaker promotions, mutes, topic edits, and removals.</span>
+      </div>
+      <div class="mod-history-body" id="mod-history-body">
+        <div class="mod-history-loading" id="mod-history-loading" style="display: none;">
+          <div class="spinner-small"></div>
+          <span>Loading moderator action history...</span>
+        </div>
+        <div class="mod-history-empty" id="mod-history-empty" style="display: none;">
+          <span style="font-size: 32px;">📋</span>
+          <p>No moderator actions recorded in this room yet.</p>
+        </div>
+        <div class="mod-history-list" id="mod-history-list">
+          <!-- Dynamic moderator action cards -->
+        </div>
+        <div class="mod-history-load-more" id="mod-history-load-more" style="display: none;">
+          <button class="btn btn-secondary btn-sm" id="btn-mod-history-more">Load Earlier Actions</button>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end;">
+        <button class="btn btn-secondary" id="btn-dismiss-mod-history">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ROOM ACTIVITY & PUBNUB HISTORY INFO   -->
+  <!-- ========================================== -->
+  <div class="modal-backdrop" id="modal-room-activity-history" style="display: none;">
+    <div class="modal-card modal-mod-history-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap" style="display: flex; align-items: center; gap: 8px;">
+          <span class="modal-title-icon" style="font-size: 20px;">📋</span>
+          <h3 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 700;">Room Activity & PubNub History</h3>
+          <span class="badge badge-success" id="activity-history-count-badge">0 Events</span>
+        </div>
+        <button class="btn-close-modal" id="btn-close-activity-history">✕</button>
+      </div>
+      <div class="modal-sub-banner">
+        <span>Real-time event stream: message deletions (who deleted whose message), handraise settings, moderator actions, and member events.</span>
+      </div>
+      <div class="mod-history-body" id="activity-history-body">
+        <div class="mod-history-empty" id="activity-history-empty" style="display: none;">
+          <span style="font-size: 32px;">📭</span>
+          <p>No activity events recorded in this session yet.</p>
+        </div>
+        <div class="mod-history-list" id="activity-history-list">
+          <!-- Dynamic activity items with profiles resolved -->
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn btn-danger btn-sm" id="btn-clear-activity-history">Clear History</button>
+        <button class="btn btn-secondary" id="btn-dismiss-activity-history">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-status-bar">
+    <div class="status-left">
+      <span class="status-indicator"></span>
+      <span class="status-text" id="app-status-text">PowerDeck Pro System Ready</span>
+    </div>
+    <div class="status-right">
+      <span>v2.0.1 major update</span>
+    </div>
+  </footer>
+
+  <!-- Top Floating Success Popup Container for Profile & House modifications -->
+  <div id="float-success-popup-container" class="float-success-popup-container"></div>
+
+  <script src="agora-rtc.js"></script>
+  <script src="pubnub.min.js"></script>
+  <script src="particles.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

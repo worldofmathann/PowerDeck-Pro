@@ -1,0 +1,39 @@
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production Build outputs
+dist/
+dist-unpacked/
+win-unpacked/
+LICENSED/
+*.exe
+*.jsc
+*.blockmap
+
+# Temporary & backup directories
+.src_backup_temp/
+.temp/
+tmp/
+*.log
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Rust build artifacts
+rust-core/target/
+
+# Local cache / user data
+*.local
+pdp_license.json
+profile.json

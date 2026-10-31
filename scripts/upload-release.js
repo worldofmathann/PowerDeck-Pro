@@ -1,52 +1,20 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const crypto = require('crypto');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 const DIST_DIR = path.join(ROOT_DIR, 'dist');
-const REPO_OWNER = 'loseyrfkinmind';
-const REPO_NAME = 'Updates';
+const REPO_OWNER = 'worldofmathann';
+const REPO_NAME = 'PowerDeck-Pro';
 const TAG_NAME = 'v2.0.1';
-const RELEASE_NAME = 'PowerDeck Pro v2.0.1 Major Update';
-
-function decryptFernetToken(tokenB64, passwordStr) {
-  try {
-    const keyBytes = Buffer.alloc(32, 0x30);
-    Buffer.from(passwordStr, 'utf8').copy(keyBytes);
-    const encryptionKey = keyBytes.subarray(16, 32);
-    const tokenBuf = Buffer.from(tokenB64.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
-    if (tokenBuf.length < 57) return null;
-    const iv = tokenBuf.subarray(9, 25);
-    const ciphertext = tokenBuf.subarray(25, tokenBuf.length - 32);
-    const decipher = crypto.createDecipheriv('aes-128-cbc', encryptionKey, iv);
-    let decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
-    let str = decrypted.toString('utf8').trim();
-    if (str.startsWith('"') && str.endsWith('"')) str = str.slice(1, -1);
-    return str;
-  } catch (err) {
-    return null;
-  }
-}
+const RELEASE_NAME = 'PowerDeck Pro v2.0.1 - Open Source Release';
 
 function getGitHubToken() {
-  return new Promise((resolve, reject) => {
-    https.get('https://raw.githubusercontent.com/loseyrfkinmind/funbaby/main/roddy', (res) => {
-      let body = '';
-      res.on('data', d => body += d);
-      res.on('end', () => {
-        try {
-          const rawRoddyB64 = body.trim();
-          const fernetToken = Buffer.from(rawRoddyB64, 'base64').toString('utf8');
-          const token = decryptFernetToken(fernetToken, 'Powerdeck@2026');
-          if (token) resolve(token);
-          else reject(new Error('Failed to decrypt GitHub token'));
-        } catch (e) {
-          reject(e);
-        }
-      });
-    }).on('error', reject);
-  });
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    throw new Error('Please set GITHUB_TOKEN environment variable to deploy releases.');
+  }
+  return token;
 }
 
 function httpsRequest(options, data = null) {

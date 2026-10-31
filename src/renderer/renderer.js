@@ -5047,65 +5047,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch (_) {}
     }
   }
-
-  function clearUserProfileGifReaction(userId) {
-    if (!userId) return;
-    const uidStr = String(userId).trim();
-    const entry = userActiveGifMap.get(uidStr);
-    if (entry && entry.timerId) clearTimeout(entry.timerId);
-    const originalPhotoUrl = entry ? entry.originalPhotoUrl : null;
-    userActiveGifMap.delete(uidStr);
-
-    const myId = String(getLoggedInUserId() || '');
-    const isSelf = uidStr === myId;
-
-    if (isSelf && homeAvatar) {
-      if (originalProfileAvatarSrc) {
-        homeAvatar.src = originalProfileAvatarSrc;
-        homeAvatar.style.display = 'block';
-        if (homeAvatarFallback) homeAvatarFallback.style.display = 'none';
-      }
-    }
-
-    const matchingTiles = new Set();
-    const candidateSelectors = [
-      `#channel-speakers-grid .speaker-tile[data-user-id="${uidStr}"]`,
-      `#channel-listeners-grid .listener-tile[data-user-id="${uidStr}"]`,
-      `#stage-speakers-grid .speaker-tile[data-user-id="${uidStr}"]`,
-      `#stage-listeners-grid .listener-tile[data-user-id="${uidStr}"]`,
-      `.speaker-tile[data-user-id="${uidStr}"]`,
-      `.listener-tile[data-user-id="${uidStr}"]`
-    ];
-    candidateSelectors.forEach(sel => {
-      document.querySelectorAll(sel).forEach(t => {
-        if (!t.closest('#channel-chat-panel, .room-chat-drawer, .chat-panel, .chat-message-item, .chat-msg-avatar-col, .room-chat-box')) {
-          matchingTiles.add(t);
-        }
-      });
-    });
-
-    if (isSelf) {
-      document.querySelectorAll('.speaker-tile.is-self, .listener-tile.is-self').forEach(t => {
-        if (!t.closest('#channel-chat-panel, .room-chat-drawer, .chat-panel, .chat-message-item, .chat-msg-avatar-col, .room-chat-box')) {
-          matchingTiles.add(t);
-        }
-      });
-    }
-
-    matchingTiles.forEach(tile => {
-      if (!tile || tile.closest('#channel-chat-panel, .room-chat-drawer, .chat-panel, .chat-message-item, .chat-msg-avatar-col, .room-chat-box')) return;
-      const wrap = tile.querySelector('.speaker-avatar-wrap, .listener-avatar-wrap, .speaker-avatar, .listener-avatar');
-      if (!wrap) return;
-
-      const halo = wrap.querySelector('.gif-reaction-halo');
-      if (halo) halo.remove();
-
-      const vid = wrap.querySelector('.gif-avatar-video');
-      if (vid) {
-        vid.style.display = 'none';
-        vid.src = '';
-      }
-
       const tempImg = wrap.querySelector('.gif-temp-avatar-img');
       if (tempImg) tempImg.remove();
 

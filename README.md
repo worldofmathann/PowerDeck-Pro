@@ -1,138 +1,182 @@
-# ⚡ PowerDeck Pro - Advanced Clubhouse Auth & Agora Audio Engine
+<div align="center">
 
-> **Crafted for High Performance Desktop Architecture**  
-> Electron (Node.js / Web) • Rust Core (`powerdeck_core`) • Java 21 LTS (`PowerDeckAuth`)
+# ⚡ PowerDeck Pro
 
----
+### Free & Open-Source Studio Desktop Client for Real-Time Voice Rooms
 
-## 🌟 Overview
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/version-2.0.1-green.svg)](https://github.com/worldofmathann/PowerDeck-Pro/releases)
+[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://github.com/worldofmathann/PowerDeck-Pro/releases)
+[![Status](https://img.shields.io/badge/status-100%25%20Free%20%26%20Unlocked-brightgreen.svg)](#)
 
-**PowerDeck Pro** is an enterprise-grade desktop authentication and session synthesizer application designed for Clubhouse API and Agora real-time voice infrastructure.
+<p align="center">
+  <b>High-fidelity 48kHz audio engine, studio equalizer, reverb mixer, and resilient 24/7 VPS streaming.</b><br>
+  No paywalls. No license keys. Completely free and open-source forever.
+</p>
 
-Featuring:
-- **3 Unified Authentication Methods**:
-  1. 📱 **Login with Phone Number (OTP)**: Synchronized hardware session lock. The hardware Device ID generated for registration check is strictly preserved and paired with the complete verification request to ensure token issuance succeeds.
-  2. 🔐 **Password Login**: Direct authentication with registered phone number and password.
-  3. 🔑 **Token Direct Login**: Instant authentication by supplying an active token.
-- **Dedicated Separated Token Preview Box**: Prominent, high-clarity monospace card with 1-click clipboard copy, mask/unmask toggle, and character counter.
-- **Automated `profile.json` Synthesizer**:
-  - Automatically queries `/api/me` upon successful authentication.
-  - Builds the complete Clubdeck/Powerdeck profile configuration structure.
-  - Injects the official **Agora Key (`938de3e8055e42b281bb8c6f69c21f78`)** and PubNub configurations for real-time audio channels and house creation.
-  - Directly saves to **`%APPDATA%\powerdeckpro\profile.json`**.
-- **Instant Transition to Home Page (Step 1)**:
-  - Displays user profile photo, display name, `@username`, User ID, and following counts.
-  - Shows active session credentials, paired hardware device ID, and Agora RTC status.
-  - Quick action buttons to **Open Folder**, **View profile.json in modal**, and **Copy Path**.
-- **Dual Theme Engine**: Dark (`#0B0D14`) & Light (`#F3F5FB`) with high contrast and smooth transitions.
-- **60 FPS Constellation Particle Canvas**: Glowing radial halos, neural distance lines, and mouse magnetism/repulsion.
+</div>
 
 ---
 
-## 🚀 Quick Start (Electron Desktop App)
+### ⚠️ Legal Disclaimer
 
-### 1. Install Dependencies
+> **IMPORTANT**: **PowerDeck Pro** is an independent, community-driven, third-party open-source project.  
+> It is **NOT** affiliated with, associated with, authorized by, endorsed by, sponsored by, or in any way officially connected with **Clubhouse** ([Alpha Exploration Co., Inc.](https://www.clubhouse.com)) or any of its subsidiaries or affiliates.  
+> 
+> The official Clubhouse website can be found at [https://www.clubhouse.com](https://www.clubhouse.com). The name "Clubhouse", as well as related names, marks, logos, and emblems, are registered trademarks of their respective owners.
+
+---
+
+## 🌟 Why PowerDeck Pro?
+
+PowerDeck Pro was built for creators, musicians, room moderators, and power users who need studio-quality audio control, ultra-stable connections, and complete freedom without artificial limitations.
+
+Every feature in PowerDeck Pro is **100% unlocked and free**:
+- 🚫 **No License System**: No activation keys, no paid tiers, no expiration dates.
+- 🔓 **All Features Unlocked**: Full access to all audio processing DSPs, equalizer bands, custom media uploads, and channel controls.
+- 🌐 **100% Open Source**: Fully transparent codebase released under the permissive [MIT License](LICENSE).
+
+---
+
+## ✨ Key Features
+
+### 🎛️ Studio-Grade Microphone Audio Suite
+- **8-Band Parametric Equalizer**: Precision frequency tuning from 64 Hz sub-bass to 16 kHz air sheen with real-time dB feedback.
+- **Convolver Studio Reverb**: 6 selectable acoustic room algorithms (Vocal Booth, Live Studio, Warm Chamber, Concert Hall, Cathedral, Outer Space).
+- **Stereo Tempo Delay**: Configurable milliseconds delay, feedback percentage, and dry/wet mixer.
+- **Dynamic Punch Compressor**: Enhances vocal presence and loudness with auto-limiting.
+- **Adaptive Noise Gate**: Eliminates background fan hum, room echo, and keyboard clicks.
+- **Voice Character Modulator**: Clean Studio, Deep Radio, Vintage Phone, Megaphone, Cyber Robot, and High Pitch profiles.
+- **Zero-Latency Audio Monitor**: Real-time microphone loopback monitoring to your headphones.
+
+### 🎙️ Audiophile Agora RTC Engine
+- **48,000 Hz Sampling Rate (Full-Band Stereo)**: Studio sound fidelity at up to 192 kbps.
+- **Acoustic Echo Cancellation (AEC)**, **Noise Suppression (ANS)**, and **Auto Gain Control (AGC)** with instant hardware pass-through mode for external XLR microphones and audio interfaces.
+
+### ⚡ 24/7 VPS & RDP Streaming Resilience
+- **Zero-Drop Background Audio**: Audio stream stays alive even when Windows Remote Desktop (RDP) is minimized or closed.
+- **Sub-Second Auto-Reconnect**: Automatically detects disconnection or token expiration and reconnects within milliseconds without interrupting the room.
+- **System Tray Minimization**: Keeps background broadcasting active when closing the main window.
+- **Process Keepalive**: Chromium native occlusion and background throttling disabled for uninterrupted 24/7 bot and music streaming.
+
+### 💬 Live Stage & Interaction
+- **Floating Stage Reactions**: Interactive live emoji reactions with target user or full stage broadcasting.
+- **Custom Reaction Library**: Upload and broadcast your own custom GIFs and video reaction loops.
+- **Moderator Stage Tools**: Promote listeners, manage stage speakers, hand raise queue, and search room attendees.
+- **Direct House Invitations**: Instant invite link generator and contact invite dialog.
+
+### 🔐 Flexible Authentication
+- **3 Unified Sign-In Options**:
+  1. 📱 **Phone Number (OTP)**: Hardware-synced verification lock.
+  2. 🔐 **Password Login**: Direct credential login for registered accounts.
+  3. 🔑 **Token Direct Login**: Instant 1-click authentication using an existing auth token.
+- **Automated Profile Synthesizer**: Generates and pairs Agora voice tokens, device IDs, and local `%APPDATA%\powerdeckpro\profile.json` automatically.
+
+### 🎨 Premium Interface Design
+- **Dual Dynamic Themes**: Deep Studio Dark (`#0B0D14`) and Crisp Modern Light (`#F3F5FB`).
+- **Interactive Constellation Canvas**: 60 FPS neural particle physics with mouse repulsion and subtle glow aesthetics.
+
+---
+
+## 📥 Download Pre-Built Executables (Windows)
+
+You can download the pre-compiled, ready-to-run binaries from the [**Releases Page**](https://github.com/worldofmathann/PowerDeck-Pro/releases):
+
+| Format | File | Recommended For |
+| :--- | :--- | :--- |
+| **Installer** | [`PowerDeck.Pro.Setup.2.0.1.exe`](https://github.com/worldofmathann/PowerDeck-Pro/releases) | Standard Windows installation with Start Menu & Desktop shortcuts |
+| **Portable** | [`PowerDeck.Pro.Portable.exe`](https://github.com/worldofmathann/PowerDeck-Pro/releases) | Single file executable; run from anywhere or USB drive without installing |
+
+---
+
+## 🚀 Running from Source
+
+If you want to inspect, modify, or build PowerDeck Pro from source code:
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18.0.0 or higher recommended)
+- [npm](https://www.npmjs.com/) (bundled with Node.js)
+- [Git](https://git-scm.com/)
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/worldofmathann/PowerDeck-Pro.git
+cd PowerDeck-Pro
+```
+
+### 2. Install Dependencies
 ```bash
 npm install
 ```
 
-### 2. Launch the Application
+### 3. Launch Development App
 ```bash
 npm start
 ```
 
 ---
 
-## 🦀 Rust Core (`rust-core`)
+## 📦 Building Standalone Binaries
 
-The complete authentication logic, profile synthesizer, and file persistence are also implemented in high-performance Rust:
+To compile your own `.exe` installer or portable executable from source:
 
-### Build Rust Binary:
 ```bash
-cargo build --manifest-path rust-core/Cargo.toml
+# Build Windows Installer (.exe)
+npm run build:exe
+
+# Build Standalone Portable (.exe)
+npm run build:portable
+
+# Or run the complete protected build pipeline:
+npm run build:protected
 ```
+Outputs are generated in the `dist/` directory.
 
-### Run Rust CLI Commands:
-```bash
-# 1. Generate Hardware Device ID
-.\rust-core\target\debug\powerdeck_core.exe device-id
+---
 
-# 2. Check profile.json existence in %APPDATA%\powerdeckpro
-.\rust-core\target\debug\powerdeck_core.exe check-profile
+## 📁 Project Architecture
 
-# 3. Start Phone Number Auth
-.\rust-core\target\debug\powerdeck_core.exe phone-start +14155552671 <DEVICE_ID>
-
-# 4. Verify OTP (Auto-saves to %APPDATA%\powerdeckpro\profile.json)
-.\rust-core\target\debug\powerdeck_core.exe phone-verify +14155552671 <OTP_CODE> <DEVICE_ID>
-
-# 5. Password Authentication
-.\rust-core\target\debug\powerdeck_core.exe password +14155552671 <PASSWORD> <DEVICE_ID>
-
-# 6. Fetch Profile with Existing Token
-.\rust-core\target\debug\powerdeck_core.exe token-fetch <TOKEN> <DEVICE_ID>
+```
+PowerDeck-Pro/
+├── build/               # Application icons and packaging assets
+├── dist/                # Output directory for compiled installers and portable binaries
+├── giphy/               # Built-in media and GIF reaction libraries
+├── java-core/           # Optional Java 21 authentication & token helper utilities
+├── scripts/             # Build pipeline and release packaging automation
+├── src/
+│   ├── main.js          # Electron Main Process (IPC, Agora voice bridges, app lifecycle)
+│   ├── preload.js       # Context isolation bridge exposing safe powerdeckAPI
+│   └── renderer/
+│       ├── agora-rtc.js # Agora RTC 4.x real-time voice streaming engine
+│       ├── index.html   # Main application view & interface modals
+│       ├── particles.js # 60 FPS constellation canvas physics
+│       ├── pubnub.min.js# Real-time room event and handraise messaging
+│       ├── renderer.js  # Main UI controller, Studio Equalizer DSP, and room stage logic
+│       └── style.css    # Responsive theme engine and stylesheet
+├── package.json         # Project metadata, scripts, and dependencies
+├── LICENSE              # MIT Open Source License
+└── README.md            # Documentation and project guide
 ```
 
 ---
 
-## ☕ Java Core (`java-core`)
+## 🤝 Contributing
 
-A standalone Java 21 implementation using `java.net.http.HttpClient`:
-
-### Compile & Run:
-```bash
-javac -d java-core java-core/PowerDeckAuth.java
-java -cp java-core com.powerdeckpro.PowerDeckAuth
-```
-
----
-
-## 📁 Profile Location & Structure
-
-Target profile path:
-```
-%APPDATA%\powerdeckpro\profile.json
-(C:\Users\<Username>\AppData\Roaming\powerdeckpro\profile.json)
-```
-
-Generated JSON Template includes:
-```json
-{
-  "apiRoot": "https://www.clubhouseapi.com/api",
-  "userAgent": "clubhouse/android",
-  "userAgentStatic": "clubhouse/2640 (iPhone; iOS 17.1.2; Scale/3.00)",
-  "appVersion": "24.01.02",
-  "appBuild": "2640",
-  "agoraKey": "938de3e8055e42b281bb8c6f69c21f78",
-  "pubnubRoot": "https://clubhouse.pubnub.com",
-  "pubnubPubKey": "pub-c-6878d382-5ae6-4494-9099-f930f938868b",
-  "pubnubSubKey": "sub-c-a4abea84-9ca3-11ea-8e71-f2b83ac9263d",
-  "pubnubSDK": "PubNFub-ObjC-iOS/4.15.11",
-  "deviceId": "LOCKED-HARDWARE-UUID",
-  "user": {
-    "user_id": 123456,
-    "name": "Display Name",
-    "photo_url": "https://...",
-    "username": "handle"
-  },
-  "tokens": {
-    "auth": "AUTHENTICATION_TOKEN"
-  },
-  "token": "AUTHENTICATION_TOKEN",
-  "userId": 123456,
-  "verified": true
-}
-```
+Contributions, bug reports, and feature requests are welcome!
+1. Fork the Project (`https://github.com/worldofmathann/PowerDeck-Pro/fork`)
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
-## 🎨 Dual Theme Palette
+## 📄 License
 
-| Element | Dark Mode | Light Mode |
-|---|---|---|
-| Background | `#0B0D14` | `#F3F5FB` |
-| Surface | `#121522` | `#FFFFFF` |
-| Primary Accent | `#7C6FFF` | `#6355EE` |
-| Success / Token | `#39E58C` | `#10B981` |
-| Warning | `#FFD166` | `#F59E0B` |
-| Error | `#FF6675` | `#EF4444` |
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for more information.
+
+---
+
+<div align="center">
+  <sub>Developed by <a href="https://github.com/worldofmathann">worldofmathann</a> and the open-source community.</sub>
+</div>
